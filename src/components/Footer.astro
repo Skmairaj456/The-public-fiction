@@ -1,0 +1,187 @@
+---
+import { nav, site, socialLinks } from '@/config/site';
+import { services } from '@/data/services';
+
+const socials = socialLinks();
+const year = new Date().getFullYear();
+---
+
+<footer class="ftr theme-ink">
+  <div class="wrap">
+    <div class="ftr__top grid">
+      <p class="ftr__tagline display-m" data-reveal>
+        Making ideas visible.<br />Making brands <span class="serif">matter.</span>
+      </p>
+
+      <nav class="ftr__col" aria-label="Footer">
+        <h2 class="label label--muted">Navigate</h2>
+        <ul>
+          <li><a class="ulink" href="/">Home</a></li>
+          {
+            nav.map((item) => (
+              <li>
+                <a class="ulink" href={item.href}>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="ftr__col">
+        <h2 class="label label--muted">Services</h2>
+        <ul>
+          {
+            services.map((s) => (
+              <li>
+                <a class="ulink" href={`/services/#${s.slug}`}>
+                  {s.title}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="ftr__col">
+        <h2 class="label label--muted">Contact</h2>
+        <ul>
+          <li><a class="ulink" href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
+          {site.contact.phone && (
+            <li>
+              <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
+            </li>
+          )}
+          {site.contact.location && <li class="muted">{site.contact.location}</li>}
+          <li><a class="ulink" href="/contact/">Project enquiry form</a></li>
+        </ul>
+        {
+          socials.length > 0 && (
+            <>
+              <h2 class="label label--muted ftr__sub">Follow</h2>
+              <ul>
+                {socials.map((s) => (
+                  <li>
+                    <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
+      </div>
+    </div>
+
+    <a class="ftr__mark" href="/" aria-label={`${site.name} — back to home`}>
+      <svg viewBox="0 0 1200 150" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+        <text x="0" y="122" textLength="1200" lengthAdjust="spacingAndGlyphs">
+          <tspan class="ftr__mark-a">THE PUBLIC </tspan><tspan class="ftr__mark-b">fiction</tspan>
+        </text>
+      </svg>
+    </a>
+
+    <div class="ftr__bottom label">
+      <span>© {year} {site.legal.entityName}. All rights reserved.</span>
+      <ul class="ftr__legal">
+        <li><a class="ulink" href="/privacy/">Privacy policy</a></li>
+        <li><a class="ulink" href="/terms/">Terms &amp; conditions</a></li>
+      </ul>
+      <a class="ulink" href="#top" data-scroll-top>Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    padding-top: clamp(80px, 10vw, 160px);
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+  }
+  .ftr__top {
+    row-gap: 48px;
+    padding-bottom: clamp(56px, 7vw, 110px);
+  }
+  .ftr__tagline {
+    grid-column: 1 / span 6;
+  }
+  .ftr__col {
+    grid-column: span 2;
+  }
+  .ftr__col:last-child {
+    grid-column: span 2;
+  }
+  .ftr__col h2 {
+    margin-bottom: 18px;
+  }
+  .ftr__col ul {
+    display: grid;
+    gap: 8px;
+  }
+  .ftr__sub {
+    margin-top: 32px;
+  }
+  .ftr__mark {
+    display: block;
+    color: var(--paper);
+    transition: color 0.5s var(--ease);
+  }
+  .ftr__mark:hover {
+    color: var(--signal);
+  }
+  .ftr__mark svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .ftr__mark text {
+    fill: currentColor;
+  }
+  .ftr__mark-a {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 150px;
+    letter-spacing: -0.045em;
+  }
+  .ftr__mark-b {
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 176px;
+  }
+  .ftr__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    padding-block: 28px 32px;
+    margin-top: clamp(16px, 2vw, 32px);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .ftr__bottom a:hover {
+    color: var(--fg);
+  }
+  .ftr__legal {
+    display: flex;
+    gap: 24px;
+  }
+
+  @media (max-width: 1100px) {
+    .ftr__tagline {
+      grid-column: 1 / -1;
+    }
+    .ftr__col,
+    .ftr__col:last-child {
+      grid-column: span 4;
+    }
+  }
+  @media (max-width: 640px) {
+    .ftr__col,
+    .ftr__col:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

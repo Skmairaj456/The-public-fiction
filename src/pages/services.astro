@@ -1,0 +1,194 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import Process from '@/components/Process.astro';
+import Button from '@/components/Button.astro';
+import { services } from '@/data/services';
+---
+
+<Base
+  title="Services"
+  description="Brand strategy and identity, marketing and advertising, photography and film, creative production, events and digital design — from the first idea to the final impression."
+>
+  <section class="page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Services) What we do</span>
+        <span class="label--muted">{services.length} disciplines</span>
+      </div>
+      <SplitHeading as="h1" class="display-xl" lines={['Six disciplines.', '*One* team.']} />
+      <div class="page-intro__foot">
+        <p class="lede" data-reveal>
+          Strategy, design, production and media under one roof — so the idea that wins the room is the same idea that
+          reaches the audience.
+        </p>
+      </div>
+      <nav class="sv__jump" aria-label="Jump to a service" data-reveal>
+        {
+          services.map((s) => (
+            <a class="tag" href={`#${s.slug}`}>
+              {s.number} {s.title}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+  </section>
+
+  <div class="sv">
+    {
+      services.map((s, i) => (
+        <section class:list={['sv__item', i % 2 === 1 && 'sv__item--flip']} id={s.slug} aria-labelledby={`${s.slug}-title`}>
+          <div class="wrap grid sv__grid">
+            <div class="sv__media media" data-reveal-img>
+              <Picture src={s.image} alt={s.imageAlt} widths={[600, 900, 1300]} sizes="(max-width: 900px) 100vw, 45vw" formats={['avif', 'webp']} />
+            </div>
+            <div class="sv__body">
+              <span class="sv__num" aria-hidden="true">
+                {s.number}
+              </span>
+              <h2 id={`${s.slug}-title`} class="display-m" data-reveal>
+                {s.title}
+              </h2>
+              <p class="sv__line serif" data-reveal>
+                {s.line}
+              </p>
+              <p class="body-l muted" data-reveal>
+                {s.description}
+              </p>
+              <ul class="sv__list" data-reveal aria-label={`${s.title} includes`}>
+                {s.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+              <div data-reveal>
+                <Button href={`/contact/?service=${s.slug}`} variant="line">
+                  Start a project like this
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+
+  <section class="section theme-paper-2" aria-labelledby="process-title">
+    <div class="wrap">
+      <SectionHead number="07" label="How it works" />
+      <SplitHeading id="process-title" class="display-l sv__process-title" lines={["Good work doesn't", 'happen *by accident.*']} />
+      <Process />
+    </div>
+  </section>
+
+  <section class="section theme-ink sv__cta">
+    <div class="wrap">
+      <SplitHeading class="display-l" lines={['Not sure which', 'one you *need?*']} />
+      <div class="sv__cta-foot" data-reveal>
+        <p class="lede muted">Most projects use more than one. Tell us the problem and we’ll suggest the shape of the answer.</p>
+        <Button href="/contact/">Talk it through</Button>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sv__jump {
+    margin-top: clamp(32px, 4vw, 56px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sv__jump .tag {
+    height: 36px;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+  .sv__jump .tag:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .sv__item {
+    padding-block: clamp(56px, 7vw, 120px);
+    border-top: 1px solid var(--line);
+  }
+  .sv__grid {
+    row-gap: 40px;
+    align-items: center;
+  }
+  .sv__media {
+    grid-column: 1 / span 6;
+    aspect-ratio: 5 / 6;
+  }
+  .sv__body {
+    grid-column: 8 / span 5;
+    display: grid;
+    gap: 20px;
+    justify-items: start;
+  }
+  .sv__item--flip .sv__media {
+    grid-column: 7 / span 6;
+    grid-row: 1;
+  }
+  .sv__item--flip .sv__body {
+    grid-column: 1 / span 5;
+    grid-row: 1;
+  }
+  .sv__num {
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--signal);
+    font-size: clamp(3.5rem, 6vw, 6.5rem);
+    line-height: 0.8;
+  }
+  .sv__line {
+    font-size: clamp(1.45rem, 2.1vw, 2.2rem);
+    line-height: 1.12;
+  }
+  .sv__list {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .sv__list li {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.97rem;
+  }
+  .sv__process-title {
+    margin-bottom: clamp(48px, 7vw, 120px);
+  }
+  .sv__cta-foot {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 24px;
+  }
+  .sv__cta-foot p {
+    max-width: 44ch;
+  }
+  @media (max-width: 900px) {
+    .sv__media,
+    .sv__body,
+    .sv__item--flip .sv__media,
+    .sv__item--flip .sv__body {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .sv__media {
+      aspect-ratio: 4 / 3;
+    }
+  }
+  @media (max-width: 480px) {
+    .sv__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

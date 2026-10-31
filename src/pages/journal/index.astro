@@ -1,0 +1,90 @@
+---
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import JournalCard from '@/components/JournalCard.astro';
+import { getPosts } from '@/lib/content';
+
+const posts = await getPosts();
+const [lead, ...rest] = posts;
+const topics = [...new Set(posts.map((p) => p.data.topic))];
+---
+
+<Base
+  title="Journal"
+  description="Marketing insights, branding, advertising, production notes and creative inspiration from THE PUBLIC FICTION."
+>
+  <section class="page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Journal) Writing</span>
+        <span class="label--muted">{posts.length} {posts.length === 1 ? 'article' : 'articles'}</span>
+      </div>
+      <SplitHeading as="h1" class="display-xl" lines={['Thoughts,', 'observations &', 'other *good ideas.*']} />
+      <div class="page-intro__foot">
+        <p class="lede" data-reveal>
+          Notes on brands, campaigns and the craft of making things people notice. Written by the people doing the work.
+        </p>
+      </div>
+      {
+        topics.length > 0 && (
+          <p class="jl__topics label label--muted" data-reveal>
+            Topics: {topics.join(' · ')}
+          </p>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section jl" aria-label="Articles">
+    <div class="wrap">
+      {
+        lead ? (
+          <>
+            <div class="jl__lead">
+              <JournalCard post={lead} variant="large" sizes="(max-width: 900px) 100vw, 70vw" />
+            </div>
+            {rest.length > 0 && (
+              <div class="jl__grid">
+                {rest.map((p) => (
+                  <JournalCard post={p} variant="large" sizes="(max-width: 760px) 100vw, 33vw" />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <p class="empty">New writing is on its way. Check back soon.</p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .jl__topics {
+    margin-top: 32px;
+  }
+  .jl {
+    padding-top: 0;
+  }
+  .jl__lead {
+    max-width: 1100px;
+    padding-bottom: clamp(48px, 6vw, 96px);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+  .jl__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 64px var(--gutter);
+  }
+  @media (max-width: 1000px) {
+    .jl__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .jl__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

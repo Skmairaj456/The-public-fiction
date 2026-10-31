@@ -1,0 +1,15 @@
+---
+interface Props {
+  number: string;
+  label: string;
+  aside?: string;
+}
+const { number, label, aside } = Astro.props;
+---
+
+<div class="sh label" data-reveal>
+  <span class="sh__num">({number})</span>
+  <span>{label}</span>
+  <span class="sh__fill"></span>
+  {aside && <span class="label--muted">{aside}</span>}
+</div>

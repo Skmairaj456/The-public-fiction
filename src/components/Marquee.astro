@@ -1,0 +1,57 @@
+---
+interface Props {
+  items: readonly string[];
+  speed?: number;
+  class?: string;
+}
+const { items, speed = 40, class: className = '' } = Astro.props;
+// Two identical halves make a seamless -50% loop.
+const loop = [...items, ...items];
+---
+
+<div class:list={['marquee', 'mq', className]} style={`--marquee-speed:${speed}s`} aria-hidden="true">
+  <div class="marquee__track">
+    {
+      loop.map((item, i) => (
+        <span class:list={['mq__item', i % 2 === 1 && 'serif']}>
+          {item}
+          <span class="mq__dot" />
+        </span>
+      ))
+    }
+  </div>
+</div>
+<p class="sr-only">{items.join(', ')}</p>
+
+<style>
+  .mq {
+    padding-block: clamp(18px, 2.4vw, 34px);
+    border-block: 1px solid var(--line);
+  }
+  .mq__item {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(20px, 3vw, 48px);
+    padding-right: clamp(20px, 3vw, 48px);
+    font-family: var(--f-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+    font-size: clamp(2rem, 5vw, 5.4rem);
+    line-height: 1;
+  }
+  .mq__item.serif {
+    font-family: var(--f-serif);
+    text-transform: none;
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5.4vw, 5.8rem);
+    letter-spacing: -0.01em;
+  }
+  .mq__dot {
+    width: 0.22em;
+    height: 0.22em;
+    border-radius: 50%;
+    background: var(--signal);
+    flex: none;
+  }
+</style>

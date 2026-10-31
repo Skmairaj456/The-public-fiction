@@ -1,0 +1,154 @@
+---
+import '@/styles/global.css';
+import { site, socialLinks } from '@/config/site';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import Loader from '@/components/Loader.astro';
+
+interface Props {
+  /** Page title. The brand name is appended automatically. */
+  title?: string;
+  description?: string;
+  /** Absolute or root-relative path to a share image. */
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  /** Extra JSON-LD objects for this page. */
+  schema?: Record<string, unknown>[];
+  /** Show the brand intro on first visit (home page). */
+  intro?: boolean;
+}
+
+const {
+  title,
+  description = site.description,
+  image = site.ogImage,
+  imageAlt = `${site.name} — creative, advertising and production company`,
+  type = 'website',
+  noindex = false,
+  schema = [],
+  intro = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — Brands, campaigns & production`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const ogImage = new URL(image, Astro.site ?? site.url).href;
+
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  description: site.description,
+  email: site.contact.email,
+  logo: new URL('/favicon.svg', site.url).href,
+  sameAs: socialLinks()
+    .filter((s) => s.label !== 'WhatsApp')
+    .map((s) => s.href),
+};
+const jsonLd = [org, ...schema];
+---
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#ece8e1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph / social -->
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta property="og:locale" content={site.locale} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@500&family=Host+Grotesk:wght@600;700&family=Instrument+Serif:ital@0;1&display=swap"
+    />
+
+    <script is:inline>
+      // Flag JS + motion preference before first paint so reveal styles never flash.
+      (function () {
+        var d = document.documentElement;
+        d.classList.remove('no-js');
+        d.classList.add('js');
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('reduce-motion');
+      })();
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <slot name="head" />
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">Skip to content</a>
+    {intro && <Loader />}
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <div class="cursor label" aria-hidden="true" data-cursor-el><span></span></div>
+
+    <script>
+      import '@/scripts/main';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  main:focus {
+    outline: none;
+  }
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 110;
+    pointer-events: none;
+    display: none;
+  }
+  .cursor span {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--signal);
+    color: var(--paper);
+    white-space: nowrap;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.45s var(--ease);
+  }
+  .cursor.is-active span {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    html.js:not(.reduce-motion) .cursor {
+      display: block;
+    }
+    html.js:not(.reduce-motion) [data-cursor] {
+      cursor: none;
+    }
+  }
+</style>

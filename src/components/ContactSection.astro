@@ -1,0 +1,138 @@
+---
+import { site, socialLinks } from '@/config/site';
+import SectionHead from './SectionHead.astro';
+import SplitHeading from './SplitHeading.astro';
+import ContactForm from './ContactForm.astro';
+
+interface Props {
+  number?: string;
+  /** Use the h1 level when this is the page's main heading. */
+  headingLevel?: 'h1' | 'h2';
+}
+const { number = '09', headingLevel = 'h2' } = Astro.props;
+const socials = socialLinks();
+---
+
+<section class="section contact theme-ink" id="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+    <SectionHead number={number} label="Start a project" />
+    <SplitHeading
+      id="contact-title"
+      as={headingLevel}
+      class="display-xl contact__title"
+      lines={["Let's make", 'something *worth*', 'talking about.']}
+    />
+
+    <div class="grid contact__body">
+      <aside class="contact__aside" data-reveal>
+        <p class="lede">
+          Have a brand to build, a campaign to launch or an idea that deserves to exist? Let’s talk.
+        </p>
+
+        <dl class="contact__details">
+          <div>
+            <dt class="label label--muted">Email</dt>
+            <dd><a class="ulink contact__email" href={`mailto:${site.contact.email}`}>{site.contact.email}</a></dd>
+          </div>
+          {
+            site.contact.phone && (
+              <div>
+                <dt class="label label--muted">Phone</dt>
+                <dd>
+                  <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
+                </dd>
+              </div>
+            )
+          }
+          {
+            site.contact.location && (
+              <div>
+                <dt class="label label--muted">Studio</dt>
+                <dd>{site.contact.location}</dd>
+              </div>
+            )
+          }
+          {
+            socials.length > 0 && (
+              <div>
+                <dt class="label label--muted">Elsewhere</dt>
+                <dd class="contact__social">
+                  {socials.map((s) => (
+                    <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  ))}
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+
+        <ol class="contact__next">
+          <li><span class="label">01</span> We read your brief and reply personally.</li>
+          <li><span class="label">02</span> A short call to understand the ambition.</li>
+          <li><span class="label">03</span> A clear proposal: approach, timeline, cost.</li>
+        </ol>
+      </aside>
+
+      <div class="contact__form" data-reveal style="--d:120">
+        <ContactForm />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact__title {
+    margin-bottom: clamp(48px, 7vw, 120px);
+  }
+  .contact__body {
+    row-gap: 64px;
+    align-items: start;
+  }
+  .contact__aside {
+    grid-column: 1 / span 4;
+    display: grid;
+    gap: 40px;
+  }
+  .contact__form {
+    grid-column: 6 / span 7;
+  }
+  .contact__details {
+    display: grid;
+    gap: 20px;
+  }
+  .contact__details dd {
+    margin-top: 6px;
+    font-size: 1.1rem;
+  }
+  .contact__email {
+    font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+    word-break: break-word;
+  }
+  .contact__social {
+    display: flex;
+    gap: 20px;
+  }
+  .contact__next {
+    display: grid;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .contact__next li {
+    display: flex;
+    gap: 14px;
+  }
+  .contact__next .label {
+    color: var(--signal);
+    padding-top: 0.25em;
+  }
+  @media (max-width: 1000px) {
+    .contact__aside,
+    .contact__form {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

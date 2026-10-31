@@ -1,0 +1,706 @@
+/* ==========================================================================
+   THE PUBLIC FICTION — design system
+   Paper, ink and a single signal colour. Type does the heavy lifting.
+   ========================================================================== */
+
+:root {
+  /* Palette */
+  --paper: #ece8e1;
+  --paper-2: #e2ddd4;
+  --paper-3: #d6d0c5;
+  --ink: #141312;
+  --ink-2: #211f1d;
+  --stone: #6b665e;
+  --stone-light: #9c968c;
+  --signal: #e2412b;
+
+  /* Semantic (re-mapped by .theme-ink) */
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --muted: var(--stone);
+  --line: rgba(20, 19, 18, 0.16);
+  --line-strong: rgba(20, 19, 18, 0.5);
+
+  /* Type */
+  --f-display: 'Host Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --f-serif: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  --f-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Space */
+  --gutter: clamp(16px, 2.2vw, 36px);
+  --section: clamp(96px, 13vw, 200px);
+  --header-h: 68px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur: 0.9s;
+
+  color-scheme: light;
+}
+
+.theme-ink {
+  --bg: var(--ink);
+  --fg: var(--paper);
+  --muted: var(--stone-light);
+  --line: rgba(236, 232, 225, 0.16);
+  --line-strong: rgba(236, 232, 225, 0.5);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.theme-paper-2 {
+  --bg: var(--paper-2);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: clamp(16px, 1.05vw, 17px);
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+ul,
+ol,
+dl,
+dd {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+  padding: 12px 18px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transform: translateY(-160%);
+  transition: transform 0.3s var(--ease);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* Film grain — static, cheap, subtle */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+.wrap {
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+.section {
+  padding-block: var(--section);
+  position: relative;
+}
+.section--tight {
+  padding-block: calc(var(--section) * 0.6);
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Type
+   -------------------------------------------------------------------------- */
+.display-xl,
+.display-l,
+.display-m,
+.display-s {
+  font-family: var(--f-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-feature-settings: 'ss01';
+}
+
+.display-xl {
+  font-size: clamp(3.1rem, 11.8vw, 14rem);
+  line-height: 0.86;
+  letter-spacing: -0.048em;
+}
+.display-l {
+  font-size: clamp(2.5rem, 7.4vw, 8.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.042em;
+}
+.display-m {
+  font-size: clamp(1.9rem, 4.2vw, 4.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.032em;
+}
+.display-s {
+  font-size: clamp(1.45rem, 2.3vw, 2.5rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+/* The editorial counter-voice: lowercase serif italic set inside display type */
+.serif {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.display-xl .serif,
+.display-l .serif,
+.display-m .serif {
+  font-size: 1.08em;
+  line-height: 0;
+  padding-right: 0.04em;
+}
+.accent {
+  color: var(--signal);
+}
+
+.label {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.label--muted {
+  color: var(--muted);
+}
+
+.lede {
+  font-size: clamp(1.15rem, 1.55vw, 1.6rem);
+  line-height: 1.32;
+  letter-spacing: -0.012em;
+  font-weight: 400;
+}
+
+.body-l {
+  font-size: clamp(1.05rem, 1.15vw, 1.2rem);
+  line-height: 1.55;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.prose {
+  font-size: clamp(1.05rem, 1.2vw, 1.22rem);
+  line-height: 1.65;
+  max-width: 68ch;
+}
+.prose > * + * {
+  margin-top: 1.1em;
+}
+.prose h2 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 2.3vw, 2.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  margin-top: 2em;
+}
+.prose a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover {
+  color: var(--signal);
+}
+.prose ul {
+  list-style: none;
+}
+.prose ul li {
+  padding-left: 1.4em;
+  position: relative;
+}
+.prose ul li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--muted);
+}
+.prose em {
+  font-family: var(--f-serif);
+  font-size: 1.12em;
+}
+
+/* --------------------------------------------------------------------------
+   Section heading (the template's numbered-label pattern)
+   -------------------------------------------------------------------------- */
+.sh {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: clamp(32px, 4.5vw, 72px);
+}
+.sh__num {
+  color: var(--signal);
+}
+.sh__fill {
+  flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons & links
+   -------------------------------------------------------------------------- */
+.btn {
+  --btn-bg: var(--fg);
+  --btn-fg: var(--bg);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.45s var(--ease);
+  white-space: nowrap;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--signal);
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease);
+}
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: none;
+}
+.btn:hover,
+.btn:focus-visible {
+  color: var(--paper);
+}
+.btn--line {
+  --btn-bg: transparent;
+  --btn-fg: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.btn--line:hover,
+.btn--line:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--signal);
+}
+.btn__arrow {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  transition: transform 0.5s var(--ease);
+}
+.btn:hover .btn__arrow {
+  transform: translateX(4px) rotate(-45deg);
+}
+.btn[disabled],
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ulink {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.5s var(--ease), color 0.3s;
+  padding-bottom: 2px;
+}
+.ulink:hover,
+.ulink:focus-visible,
+.ulink[aria-current='page'] {
+  background-size: 100% 1px;
+}
+
+.arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.arrow-link svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.5s var(--ease);
+}
+.arrow-link:hover svg {
+  transform: translateX(4px) rotate(-45deg);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.tag--sample {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: transparent;
+}
+.tag--sample::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  margin-right: 7px;
+}
+
+/* --------------------------------------------------------------------------
+   Media
+   -------------------------------------------------------------------------- */
+.media {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper-3);
+}
+.theme-ink .media {
+  background: var(--ink-2);
+}
+.media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.media > img,
+.media > picture > img,
+.media > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Motion — only applied when JS is running and motion is allowed
+   -------------------------------------------------------------------------- */
+html.js:not(.reduce-motion) [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+  transition-delay: calc(var(--d, 0) * 1ms);
+}
+html.js:not(.reduce-motion) [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Line-by-line headline reveal */
+.lm {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+.lm > span {
+  display: block;
+}
+html.js:not(.reduce-motion) [data-split] .lm > span {
+  transform: translate3d(0, 108%, 0);
+  transition: transform 1.1s var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms + var(--d, 0) * 1ms);
+}
+html.js:not(.reduce-motion) [data-split].is-in .lm > span {
+  transform: none;
+}
+
+/* Image reveal: a curtain lifts, the picture settles */
+html.js:not(.reduce-motion) [data-reveal-img] {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.3s var(--ease-io);
+  transition-delay: calc(var(--d, 0) * 1ms);
+}
+html.js:not(.reduce-motion) [data-reveal-img] img {
+  transform: scale(1.18);
+  transition: transform 1.8s var(--ease);
+  transition-delay: calc(var(--d, 0) * 1ms);
+}
+html.js:not(.reduce-motion) [data-reveal-img].is-in {
+  clip-path: inset(0 0 0 0);
+}
+html.js:not(.reduce-motion) [data-reveal-img].is-in img {
+  transform: none;
+}
+
+/* Line draw */
+html.js:not(.reduce-motion) [data-draw] {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s var(--ease-io);
+  transition-delay: calc(var(--d, 0) * 1ms);
+}
+html.js:not(.reduce-motion) [data-draw].is-in {
+  transform: none;
+}
+
+/* Parallax targets are moved by JS */
+[data-parallax] {
+  will-change: transform;
+}
+
+/* Marquee */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+.marquee__track {
+  display: inline-flex;
+  animation: marquee var(--marquee-speed, 38s) linear infinite;
+}
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Cross-document page transitions (Chrome, Edge, Safari 18.2+). Others simply navigate. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: vt-out 0.45s var(--ease-io) both;
+}
+::view-transition-new(root) {
+  animation: vt-in 0.7s var(--ease) both;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Page intro (shared by inner pages)
+   -------------------------------------------------------------------------- */
+.page-intro {
+  padding-top: calc(var(--header-h) + clamp(48px, 9vw, 150px));
+  padding-bottom: clamp(48px, 7vw, 110px);
+}
+.page-intro__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 3vw, 44px);
+}
+.page-intro__foot {
+  margin-top: clamp(28px, 4vw, 64px);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+.page-intro__foot > p {
+  grid-column: 7 / span 5;
+}
+@media (max-width: 900px) {
+  .page-intro__foot > p {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Empty state */
+.empty {
+  padding: 48px 24px;
+  border: 1px dashed var(--line-strong);
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Editor-only notice (development builds only) */
+.dev-note {
+  margin-top: 32px;
+  padding: 18px 20px;
+  border: 1px dashed var(--signal);
+  color: var(--fg);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.dev-note strong {
+  color: var(--signal);
+}

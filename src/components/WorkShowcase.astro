@@ -1,0 +1,73 @@
+---
+/**
+ * Asymmetric editorial layout for the home page's selected work.
+ * Projects flow into a repeating six-slot composition, so any number works.
+ */
+import ProjectCard from './ProjectCard.astro';
+import type { Project } from '@/lib/content';
+
+interface Props {
+  projects: Project[];
+}
+const { projects } = Astro.props;
+
+const slots = [
+  { cls: 'ws--a', ratio: '5 / 4', sizes: '(max-width: 760px) 100vw, 58vw' },
+  { cls: 'ws--b', ratio: '3 / 4', sizes: '(max-width: 760px) 100vw, 33vw' },
+  { cls: 'ws--c', ratio: '4 / 5', sizes: '(max-width: 760px) 100vw, 33vw' },
+  { cls: 'ws--d', ratio: '16 / 11', sizes: '(max-width: 760px) 100vw, 50vw' },
+  { cls: 'ws--e', ratio: '16 / 9', sizes: '(max-width: 760px) 100vw, 66vw' },
+  { cls: 'ws--f', ratio: '3 / 4', sizes: '(max-width: 760px) 100vw, 25vw' },
+];
+---
+
+<div class="ws grid">
+  {
+    projects.map((project, i) => {
+      const slot = slots[i % slots.length];
+      return <ProjectCard project={project} index={i} ratio={slot.ratio} sizes={slot.sizes} class={`ws__item ${slot.cls}`} />;
+    })
+  }
+</div>
+
+<style>
+  .ws {
+    row-gap: clamp(56px, 8vw, 140px);
+    align-items: start;
+  }
+  .ws :global(.ws--a) {
+    grid-column: 1 / span 7;
+  }
+  .ws :global(.ws--b) {
+    grid-column: 9 / span 4;
+    margin-top: clamp(80px, 16vw, 280px);
+  }
+  .ws :global(.ws--c) {
+    grid-column: 2 / span 4;
+  }
+  .ws :global(.ws--d) {
+    grid-column: 7 / span 6;
+    margin-top: clamp(40px, 10vw, 180px);
+  }
+  .ws :global(.ws--e) {
+    grid-column: 1 / span 8;
+  }
+  .ws :global(.ws--f) {
+    grid-column: 10 / span 3;
+    margin-top: clamp(60px, 12vw, 220px);
+  }
+
+  @media (max-width: 760px) {
+    .ws {
+      row-gap: 56px;
+    }
+    .ws :global(.ws__item) {
+      grid-column: 1 / -1 !important;
+      margin-top: 0 !important;
+    }
+    /* On phones, alternate an inset so the column still feels composed */
+    .ws :global(.ws__item:nth-child(even)) {
+      margin-left: 14% !important;
+    }
+  }
+</style>

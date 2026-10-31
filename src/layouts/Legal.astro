@@ -1,0 +1,44 @@
+---
+import Base from './Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import { site } from '@/config/site';
+
+interface Props {
+  title: string;
+  description: string;
+  lines: string[];
+}
+const { title, description, lines } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <section class="page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Legal) {title}</span>
+        <span class="label--muted">Last updated {site.legal.lastUpdated}</span>
+      </div>
+      <SplitHeading as="h1" class="display-l" lines={lines} />
+    </div>
+  </section>
+  <section class="wrap legal">
+    <div class="prose">
+      <slot />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .legal {
+    padding-bottom: var(--section);
+  }
+  .legal .prose {
+    margin-left: auto;
+    margin-right: max(0px, calc((100% - 68ch) / 4));
+  }
+  @media (max-width: 900px) {
+    .legal .prose {
+      margin: 0;
+    }
+  }
+</style>

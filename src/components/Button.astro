@@ -1,0 +1,17 @@
+---
+import Arrow from './Arrow.astro';
+
+interface Props {
+  href: string;
+  variant?: 'solid' | 'line';
+  class?: string;
+  arrow?: boolean;
+  [key: string]: unknown;
+}
+const { href, variant = 'solid', class: className = '', arrow = true, ...rest } = Astro.props;
+---
+
+<a href={href} class:list={['btn', variant === 'line' && 'btn--line', className]} {...rest}>
+  <span><slot /></span>
+  {arrow && <Arrow />}
+</a>

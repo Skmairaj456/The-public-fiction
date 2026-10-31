@@ -1,0 +1,98 @@
+---
+/**
+ * Testimonials from src/data/studio.ts. Only genuine, approved feedback belongs there.
+ * The section is omitted from the live site until at least one entry exists.
+ */
+import { testimonials } from '@/data/studio';
+import SectionHead from './SectionHead.astro';
+import SplitHeading from './SplitHeading.astro';
+
+interface Props {
+  number?: string;
+}
+const { number = '07' } = Astro.props;
+const show = testimonials.length > 0 || import.meta.env.DEV;
+---
+
+{
+  show && (
+    <section class="section tst theme-paper-2" aria-labelledby="tst-title">
+      <div class="wrap">
+        <SectionHead number={number} label="Testimonials" aside={testimonials.length > 1 ? `${testimonials.length} voices` : undefined} />
+        <SplitHeading id="tst-title" class="display-l tst__title" lines={['Words from', 'the *other side.*']} />
+
+        {testimonials.length > 0 ? (
+          <div class="tst__track" data-tst>
+            {testimonials.map((t, i) => (
+              <figure class="tst__item" data-reveal style={`--d:${i * 90}`}>
+                <span class="tst__mark serif" aria-hidden="true">
+                  “
+                </span>
+                <blockquote class="tst__quote">
+                  <p>{t.quote}</p>
+                </blockquote>
+                <figcaption class="tst__who">
+                  <span class="label">{t.name}</span>
+                  <span class="label label--muted">
+                    {t.role}
+                    {t.company && `, ${t.company}`}
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        ) : (
+          <p class="dev-note">
+            <strong>Editor note (dev only):</strong> this section is hidden on the live site until real testimonials
+            are added to <code>src/data/studio.ts → testimonials</code> (quote, name, role, company).
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .tst__title {
+    margin-bottom: clamp(40px, 6vw, 96px);
+  }
+  .tst__track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(300px, 42%);
+    gap: var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 16px;
+    scrollbar-width: thin;
+  }
+  .tst__item {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--fg);
+  }
+  .tst__mark {
+    font-size: 6rem;
+    line-height: 0.5;
+    color: var(--signal);
+    height: 0.45em;
+  }
+  .tst__quote {
+    font-family: var(--f-serif);
+    font-size: clamp(1.5rem, 2.4vw, 2.4rem);
+    line-height: 1.15;
+  }
+  .tst__who {
+    display: grid;
+    gap: 4px;
+    margin-top: auto;
+  }
+  @media (max-width: 700px) {
+    .tst__track {
+      grid-auto-columns: 86%;
+    }
+  }
+</style>

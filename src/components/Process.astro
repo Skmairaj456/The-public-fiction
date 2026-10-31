@@ -1,0 +1,100 @@
+---
+import { process } from '@/data/studio';
+---
+
+<ol class="proc">
+  {
+    process.map((step, i) => (
+      <li class="proc__step" data-reveal style={`--d:${i * 110}`}>
+        <span class="proc__line" data-draw style={`--d:${i * 110}`} aria-hidden="true" />
+        <span class="proc__num" aria-hidden="true">
+          {step.number}
+        </span>
+        <h3 class="proc__title display-s">
+          <span class="sr-only">Step {step.number}: </span>
+          {step.title}
+        </h3>
+        <p class="proc__text">{step.text}</p>
+        <p class="proc__detail muted">{step.detail}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .proc {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--gutter);
+    counter-reset: step;
+  }
+  .proc__step {
+    position: relative;
+    padding-top: 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .proc__line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--fg);
+  }
+  .proc__num {
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: clamp(4rem, 8vw, 8.5rem);
+    line-height: 0.85;
+    color: var(--signal);
+    margin-bottom: clamp(24px, 4vw, 64px);
+  }
+  .proc__title {
+    margin-bottom: 14px;
+  }
+  .proc__text {
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .proc__detail {
+    font-size: 0.94em;
+  }
+  /* Steps descend like a staircase on wide screens */
+  @media (min-width: 1101px) {
+    .proc__step:nth-child(2) {
+      margin-top: 60px;
+    }
+    .proc__step:nth-child(3) {
+      margin-top: 120px;
+    }
+    .proc__step:nth-child(4) {
+      margin-top: 180px;
+    }
+    .proc__step:nth-child(5) {
+      margin-top: 240px;
+    }
+  }
+  @media (max-width: 1100px) {
+    .proc {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 56px;
+    }
+  }
+  @media (max-width: 600px) {
+    .proc {
+      grid-template-columns: 1fr;
+      row-gap: 40px;
+    }
+    .proc__step {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      column-gap: 16px;
+    }
+    .proc__num {
+      grid-row: span 3;
+      font-size: 4.2rem;
+      margin: 0;
+    }
+  }
+</style>

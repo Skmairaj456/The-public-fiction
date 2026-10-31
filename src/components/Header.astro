@@ -1,0 +1,229 @@
+---
+import { nav, site, socialLinks } from '@/config/site';
+import Wordmark from './Wordmark.astro';
+import Arrow from './Arrow.astro';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+const socials = socialLinks();
+---
+
+<header class="hdr" data-header>
+  <div class="wrap hdr__in">
+    <a class="hdr__logo" href="/" aria-label={`${site.name} — home`}>
+      <Wordmark />
+    </a>
+
+    <nav class="hdr__nav" aria-label="Primary">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a class="ulink label" href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <a class="btn hdr__cta" href="/contact/">
+      <span>Start a project</span>
+      <Arrow />
+    </a>
+
+    <button class="hdr__burger label" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-open>
+      <span class="hdr__burger-lines" aria-hidden="true"><i></i><i></i></span>
+      <span>Menu</span>
+    </button>
+  </div>
+</header>
+
+<div class="menu theme-ink" id="site-menu" role="dialog" aria-modal="true" aria-label="Site menu" hidden data-menu>
+  <div class="wrap menu__top">
+    <a class="hdr__logo" href="/" aria-label={`${site.name} — home`}><Wordmark /></a>
+    <button class="hdr__burger label" type="button" data-menu-close>
+      <span>Close</span>
+    </button>
+  </div>
+  <nav class="wrap menu__nav" aria-label="Mobile">
+    <ul>
+      <li style="--i:0"><a href="/" aria-current={path === '/' ? 'page' : undefined}><span class="label">00</span>Home</a></li>
+      {
+        nav.map((item, i) => (
+          <li style={`--i:${i + 1}`}>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              <span class="label">0{i + 1}</span>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="wrap menu__foot">
+    <a class="ulink" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+    {
+      socials.length > 0 && (
+        <ul class="menu__social">
+          {socials.map((s) => (
+            <li>
+              <a class="ulink label" href={s.href} target="_blank" rel="noopener noreferrer">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .hdr {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 90;
+    height: var(--header-h);
+    transition:
+      transform 0.6s var(--ease),
+      background-color 0.4s,
+      backdrop-filter 0.4s;
+  }
+  .hdr[data-scrolled='true'] {
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .hdr[data-hidden='true'] {
+    transform: translateY(-100%);
+  }
+  .hdr__in {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .hdr__logo {
+    font-size: clamp(15px, 1.15vw, 18px);
+    margin-right: auto;
+    padding-block: 8px;
+  }
+  .hdr__nav ul {
+    display: flex;
+    gap: clamp(18px, 2.4vw, 40px);
+  }
+  .hdr__cta {
+    min-height: 42px;
+    padding: 0 20px;
+    font-size: 12px;
+  }
+  .hdr__burger {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 4px;
+  }
+  .hdr__burger-lines {
+    display: grid;
+    gap: 5px;
+    width: 22px;
+  }
+  .hdr__burger-lines i {
+    display: block;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  @media (max-width: 960px) {
+    .hdr__nav,
+    .hdr__cta {
+      display: none;
+    }
+    .hdr__burger {
+      display: inline-flex;
+    }
+  }
+
+  /* Full-screen menu */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.8s var(--ease-io);
+    overflow-y: auto;
+  }
+  .menu.is-open {
+    clip-path: inset(0 0 0 0);
+  }
+  .menu__top {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: none;
+  }
+  .menu__top .hdr__burger {
+    display: inline-flex;
+  }
+  .menu__nav {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding-block: 32px;
+  }
+  .menu__nav ul {
+    width: 100%;
+  }
+  .menu__nav li {
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .menu__nav li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .menu__nav a {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 10px 0;
+    font-family: var(--f-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    font-size: clamp(2.6rem, 11vw, 5.5rem);
+    line-height: 0.95;
+    transform: translateY(105%);
+    transition: transform 0.9s var(--ease), color 0.3s;
+    transition-delay: calc(var(--i) * 55ms + 200ms);
+  }
+  .menu__nav a .label {
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    font-family: var(--f-mono);
+    font-weight: 500;
+  }
+  .menu__nav a[aria-current='page'],
+  .menu__nav a:hover {
+    color: var(--signal);
+  }
+  .menu.is-open .menu__nav a {
+    transform: none;
+  }
+  .menu__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 28px;
+  }
+  .menu__social {
+    display: flex;
+    gap: 20px;
+  }
+</style>

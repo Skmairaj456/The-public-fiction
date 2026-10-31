@@ -1,0 +1,214 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import Process from '@/components/Process.astro';
+import Clients from '@/components/Clients.astro';
+import Testimonials from '@/components/Testimonials.astro';
+import Button from '@/components/Button.astro';
+import Marquee from '@/components/Marquee.astro';
+
+import studioWide from '@/assets/img/photographer-mist.jpg';
+import studioA from '@/assets/img/camera-dark.jpg';
+import studioB from '@/assets/img/team.jpg';
+
+const beliefs = [
+  {
+    title: 'Clarity beats volume',
+    text: 'One sharp idea, said well, outperforms ten said loudly. We spend real time finding the one.',
+  },
+  {
+    title: 'Craft is a business decision',
+    text: 'People judge quality in milliseconds. Well-made work earns trust before anyone reads a word.',
+  },
+  {
+    title: 'Strategy should be visible',
+    text: 'If you can’t see the thinking in the final picture, the thinking didn’t make it. We make sure it does.',
+  },
+  {
+    title: 'Plain words, honest numbers',
+    text: 'No jargon, no inflated promises. We tell you what we think, what it costs and what to expect.',
+  },
+];
+---
+
+<Base
+  title="Studio"
+  description="THE PUBLIC FICTION is an independent creative and marketing company combining strategy, creative direction, production and media."
+>
+  <section class="page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Studio) About us</span>
+      </div>
+      <SplitHeading as="h1" class="display-xl" lines={['Every brand', 'tells a story.', 'We make it *public.*']} />
+      <div class="page-intro__foot">
+        <p class="lede" data-reveal>
+          THE PUBLIC FICTION is an independent creative and marketing company. We bring strategy, creativity and
+          production together to help brands find their voice, reach their audience and make an impression.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <figure class="st__wide">
+    <div class="media st__wide-media" data-reveal-img>
+      <div class="st__wide-inner" data-parallax="-0.1">
+        <Picture src={studioWide} alt="A photographer on a ridge above a valley filled with mist" widths={[800, 1400, 2000]} sizes="100vw" formats={['avif', 'webp']} loading="eager" />
+      </div>
+    </div>
+  </figure>
+
+  <section class="section" aria-labelledby="name-title">
+    <div class="wrap">
+      <SectionHead number="01" label="The name" />
+      <div class="grid st__name">
+        <SplitHeading id="name-title" class="display-l st__name-title" lines={['Why *fiction?*']} />
+        <div class="st__name-copy" data-reveal>
+          <p class="lede">
+            Every brand is a story people agree to believe — about quality, about values, about who it’s for. Our job is to
+            write that story well and make it public.
+          </p>
+          <p class="muted">
+            Not fiction as in made-up. Fiction as in crafted: a world with a point of view, built so carefully that
+            people want to step into it. The work has to be true to the business. It also has to be worth watching.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Marquee items={['Think', 'clearly', 'Make', 'beautifully', 'Launch', 'deliberately']} speed={34} />
+
+  <section class="section" aria-labelledby="beliefs-title">
+    <div class="wrap">
+      <SectionHead number="02" label="What we believe" />
+      <SplitHeading id="beliefs-title" class="display-l st__beliefs-title" lines={['Four things we', 'won’t *compromise* on.']} />
+      <div class="grid st__beliefs">
+        <ol class="st__belief-list">
+          {
+            beliefs.map((b, i) => (
+              <li data-reveal style={`--d:${i * 80}`}>
+                <span class="label accent">0{i + 1}</span>
+                <h3 class="display-s">{b.title}</h3>
+                <p class="muted">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+        <div class="st__belief-media">
+          <div class="media st__bm-a" data-reveal-img>
+            <Picture src={studioA} alt="A camera body in low light" widths={[500, 900]} sizes="(max-width: 900px) 60vw, 25vw" formats={['avif', 'webp']} />
+          </div>
+          <div class="media st__bm-b" data-reveal-img style="--d:160">
+            <Picture src={studioB} alt="A small team working together around laptops" widths={[500, 900]} sizes="(max-width: 900px) 70vw, 30vw" formats={['avif', 'webp']} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section theme-paper-2" aria-labelledby="approach-title">
+    <div class="wrap">
+      <SectionHead number="03" label="Our approach" />
+      <SplitHeading id="approach-title" class="display-l st__approach-title" lines={["Good work doesn't", 'happen *by accident.*']} />
+      <Process />
+    </div>
+  </section>
+
+  <Clients number="04" />
+  <Testimonials number="05" />
+
+  <section class="section theme-ink st__cta">
+    <div class="wrap">
+      <SplitHeading class="display-l" lines={['We don’t just make', 'things look good.', 'We make ideas *work.*']} />
+      <div class="st__cta-btns" data-reveal>
+        <Button href="/contact/">Start a project</Button>
+        <Button href="/work/" variant="line">See the work</Button>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .st__wide-media {
+    height: clamp(360px, 80vh, 960px);
+  }
+  .st__wide-inner {
+    position: absolute;
+    inset: -10% 0;
+  }
+  .st__wide-inner :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .st__name {
+    row-gap: 32px;
+  }
+  .st__name-title {
+    grid-column: 1 / span 5;
+  }
+  .st__name-copy {
+    grid-column: 7 / span 6;
+    display: grid;
+    gap: 20px;
+  }
+  .st__beliefs-title,
+  .st__approach-title {
+    margin-bottom: clamp(48px, 7vw, 120px);
+  }
+  .st__beliefs {
+    row-gap: 56px;
+    align-items: start;
+  }
+  .st__belief-list {
+    grid-column: 1 / span 6;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px var(--gutter);
+  }
+  .st__belief-list li {
+    display: grid;
+    gap: 12px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    align-content: start;
+  }
+  .st__belief-media {
+    grid-column: 8 / span 5;
+    position: relative;
+    min-height: 100%;
+  }
+  .st__bm-a {
+    width: 62%;
+    aspect-ratio: 3 / 4;
+  }
+  .st__bm-b {
+    width: 70%;
+    aspect-ratio: 4 / 3;
+    margin: -22% 0 0 auto;
+    border: 8px solid var(--paper);
+  }
+  .st__cta-btns {
+    margin-top: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  @media (max-width: 900px) {
+    .st__name-title,
+    .st__name-copy,
+    .st__belief-list,
+    .st__belief-media {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 560px) {
+    .st__belief-list {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+</style>

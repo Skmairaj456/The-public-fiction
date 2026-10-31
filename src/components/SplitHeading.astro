@@ -1,0 +1,38 @@
+---
+/**
+ * A display heading revealed line by line.
+ * Wrap a word in *asterisks* to set it in the editorial serif italic,
+ * and in ^carets^ to set it in the signal colour.
+ */
+interface Props {
+  lines: string[];
+  as?: 'h1' | 'h2' | 'h3' | 'p';
+  class?: string;
+  /** Extra delay in ms before the first line moves. */
+  delay?: number;
+  id?: string;
+  [key: string]: unknown;
+}
+
+const { lines, as: Tag = 'h2', class: className = 'display-l', delay = 0, id, ...rest } = Astro.props;
+
+const escape = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const format = (s: string) =>
+  escape(s)
+    .replace(/\*(.+?)\*/g, '<span class="serif">$1</span>')
+    .replace(/\^(.+?)\^/g, '<span class="accent">$1</span>');
+
+const label = lines.join(' ').replace(/[*^]/g, '');
+---
+
+<Tag class={className} data-split style={`--d:${delay}`} aria-label={label} id={id} {...rest}>
+  {
+    lines.map((line, i) => (
+      <span class="lm" aria-hidden="true">
+        <span style={`--i:${i}`} set:html={format(line)} />
+      </span>
+    ))
+  }
+</Tag>

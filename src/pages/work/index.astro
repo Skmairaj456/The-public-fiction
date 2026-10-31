@@ -1,0 +1,214 @@
+---
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Button from '@/components/Button.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects();
+const categories = [...new Set(projects.map((p) => p.data.category))];
+const anySamples = projects.some((p) => p.data.sample);
+
+// Two-column rhythm: wide/narrow, then narrow/wide.
+const pattern = [
+  { cls: 'wl--wide', ratio: '4 / 3' },
+  { cls: 'wl--narrow', ratio: '4 / 5' },
+  { cls: 'wl--narrow', ratio: '4 / 5' },
+  { cls: 'wl--wide', ratio: '4 / 3' },
+];
+---
+
+<Base
+  title="Work"
+  description="Selected campaigns, brand identities, photography, films and event coverage by THE PUBLIC FICTION."
+>
+  <section class="page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Index) Work</span>
+        <span class="label--muted">{projects.length} projects</span>
+      </div>
+      <SplitHeading as="h1" class="display-xl" lines={['Ideas, made', '*visible.*']} />
+      <div class="page-intro__foot">
+        <p class="lede" data-reveal>
+          Campaigns, identities, shoots, films and events. Every project starts with a business problem and ends with
+          something people actually notice.
+        </p>
+      </div>
+      {
+        anySamples && (
+          <p class="wl__notice label label--muted" data-reveal>
+            <span class="tag tag--sample">Sample project</span> marks demonstration work created to show our approach.
+            It is not client work.
+          </p>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="wl" aria-label="Projects">
+    <div class="wrap">
+      <div class="wl__filters" role="group" aria-label="Filter projects by category" data-filters>
+        <button type="button" class="wl__filter label" aria-pressed="true" data-filter="all">
+          All <sup>{projects.length}</sup>
+        </button>
+        {
+          categories.map((c) => (
+            <button type="button" class="wl__filter label" aria-pressed="false" data-filter={c}>
+              {c} <sup>{projects.filter((p) => p.data.category === c).length}</sup>
+            </button>
+          ))
+        }
+      </div>
+      <p class="sr-only" aria-live="polite" data-filter-status></p>
+
+      {
+        projects.length > 0 ? (
+          <div class="wl__grid grid" data-grid>
+            {projects.map((p, i) => {
+              const slot = pattern[i % pattern.length];
+              return (
+                <ProjectCard
+                  project={p}
+                  index={i}
+                  ratio={slot.ratio}
+                  class={`wl__item ${slot.cls}`}
+                  sizes={slot.cls === 'wl--wide' ? '(max-width: 760px) 100vw, 58vw' : '(max-width: 760px) 100vw, 40vw'}
+                  eager={i < 2}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p class="empty">The portfolio is being prepared. Check back soon.</p>
+        )
+      }
+      <p class="empty" hidden data-filter-empty>No projects in this category yet.</p>
+    </div>
+  </section>
+
+  <section class="section wl__cta">
+    <div class="wrap">
+      <SplitHeading class="display-l" lines={['Your project', 'could be *next.*']} />
+      <div data-reveal class="wl__cta-btn"><Button href="/contact/">Start a project</Button></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .wl__notice {
+    margin-top: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .wl__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: clamp(32px, 4vw, 56px);
+  }
+  .wl__filter {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    transition:
+      background 0.3s,
+      color 0.3s,
+      border-color 0.3s;
+  }
+  .wl__filter sup {
+    font-size: 9px;
+    margin-left: 2px;
+    color: var(--muted);
+  }
+  .wl__filter:hover {
+    border-color: var(--fg);
+  }
+  .wl__filter[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .wl__filter[aria-pressed='true'] sup {
+    color: var(--stone-light);
+  }
+  .wl__grid {
+    row-gap: clamp(56px, 7vw, 120px);
+    align-items: start;
+  }
+  .wl__grid :global(.wl--wide) {
+    grid-column: span 7;
+  }
+  .wl__grid :global(.wl--narrow) {
+    grid-column: span 5;
+  }
+  .wl__grid :global(.wl__item:nth-child(4n + 2)),
+  .wl__grid :global(.wl__item:nth-child(4n + 3)) {
+    margin-top: clamp(0px, 8vw, 140px);
+  }
+  .wl__grid :global(.wl__item[hidden]) {
+    display: none;
+  }
+  /* When filtered, drop the staggered rhythm so results read cleanly */
+  .wl__grid[data-filtered='true'] :global(.wl__item) {
+    grid-column: span 6;
+    margin-top: 0;
+  }
+  .wl__cta .wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 32px;
+    border-top: 1px solid var(--line);
+    padding-top: clamp(48px, 6vw, 96px);
+  }
+  @media (max-width: 760px) {
+    .wl__grid :global(.wl__item),
+    .wl__grid[data-filtered='true'] :global(.wl__item) {
+      grid-column: 1 / -1;
+      margin-top: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  const group = document.querySelector<HTMLElement>('[data-filters]');
+  const grid = document.querySelector<HTMLElement>('[data-grid]');
+  const statusEl = document.querySelector<HTMLElement>('[data-filter-status]');
+  const empty = document.querySelector<HTMLElement>('[data-filter-empty]');
+
+  if (group && grid) {
+    const buttons = Array.from(group.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-category]'));
+
+    const apply = (filter: string) => {
+      let shown = 0;
+      items.forEach((item) => {
+        const match = filter === 'all' || item.dataset.category === filter;
+        item.hidden = !match;
+        if (match) {
+          shown++;
+          item.querySelectorAll('[data-reveal-img]').forEach((el) => el.classList.add('is-in'));
+        }
+      });
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      grid.dataset.filtered = String(filter !== 'all');
+      if (empty) empty.hidden = shown > 0;
+      if (statusEl) statusEl.textContent = `Showing ${shown} ${shown === 1 ? 'project' : 'projects'}${filter === 'all' ? '' : ` in ${filter}`}.`;
+
+      const url = new URL(location.href);
+      if (filter === 'all') url.searchParams.delete('category');
+      else url.searchParams.set('category', filter);
+      history.replaceState(null, '', url);
+    };
+
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filter!)));
+
+    const initial = new URLSearchParams(location.search).get('category');
+    if (initial && buttons.some((b) => b.dataset.filter === initial)) apply(initial);
+  }
+</script>

@@ -1,0 +1,471 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import { getEntries } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Button from '@/components/Button.astro';
+import Arrow from '@/components/Arrow.astro';
+import { site } from '@/config/site';
+import { getProjects, type Project } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(i + 1) % projects.length], all: projects },
+  }));
+}
+
+interface Props {
+  project: Project;
+  next: Project;
+  all: Project[];
+}
+
+const { project, next, all } = Astro.props;
+const { data } = project;
+
+let related: Project[] = data.related ? await getEntries(data.related) : [];
+related = related.filter(Boolean);
+if (related.length < 2) {
+  const extra = all.filter((p) => p.id !== project.id && !related.some((r) => r.id === p.id) && p.data.category !== data.category);
+  related = [...related, ...extra].slice(0, 2);
+}
+related = related.slice(0, 2);
+
+const og = await getImage({ src: data.cover, width: 1200, height: 630, format: 'jpg', fit: 'cover' });
+
+const chapters = [
+  { n: '01', label: 'The challenge', text: data.challenge },
+  { n: '02', label: 'Creative direction', text: data.direction },
+  { n: '03', label: 'Execution', text: data.execution },
+];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: data.title,
+    about: data.summary,
+    genre: data.category,
+    creator: { '@type': 'Organization', name: site.name },
+    ...(data.year ? { dateCreated: String(data.year) } : {}),
+  },
+];
+---
+
+<Base
+  title={`${data.title}${data.sample ? ' (Sample project)' : ''}`}
+  description={data.summary}
+  image={og.src}
+  imageAlt={data.coverAlt}
+  type="article"
+  schema={schema}
+>
+  <article class="cs" style={`--tone:${data.tone}`}>
+    <header class="page-intro cs__intro">
+      <div class="wrap">
+        <div class="page-intro__meta label">
+          <a class="ulink" href="/work/">← All work</a>
+          {data.sample && <span class="tag tag--sample">Sample project</span>}
+        </div>
+        <SplitHeading as="h1" class="display-xl cs__title" lines={[data.title]} />
+        <dl class="cs__facts grid" data-reveal style="--d:200">
+          <div>
+            <dt class="label label--muted">Client</dt>
+            <dd>{data.client ?? (data.sample ? 'Sample project — not client work' : '—')}</dd>
+          </div>
+          <div>
+            <dt class="label label--muted">Category</dt>
+            <dd><a class="ulink" href={`/work/?category=${encodeURIComponent(data.category)}`}>{data.category}</a></dd>
+          </div>
+          {
+            data.year && (
+              <div>
+                <dt class="label label--muted">Year</dt>
+                <dd>{data.year}</dd>
+              </div>
+            )
+          }
+          {
+            data.disciplines.length > 0 && (
+              <div class="cs__facts-wide">
+                <dt class="label label--muted">Disciplines</dt>
+                <dd>{data.disciplines.join(', ')}</dd>
+              </div>
+            )
+          }
+        </dl>
+      </div>
+    </header>
+
+    <figure class="cs__cover">
+      <div class="cs__cover-media media" data-reveal-img>
+        {
+          data.coverVideo ? (
+            <video src={data.coverVideo} poster={og.src} autoplay muted loop playsinline preload="metadata" aria-label={data.coverAlt} />
+          ) : (
+            <div class="cs__cover-inner" data-parallax="-0.1">
+              <Picture
+                src={data.cover}
+                alt={data.coverAlt}
+                widths={[800, 1280, 1920, 2400]}
+                sizes="100vw"
+                formats={['avif', 'webp']}
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
+          )
+        }
+      </div>
+    </figure>
+
+    <section class="section cs__overview" aria-label="Overview">
+      <div class="wrap grid">
+        <p class="label label--muted cs__overview-label" data-reveal>Overview</p>
+        <p class="cs__lede" data-reveal>{data.intro}</p>
+      </div>
+    </section>
+
+    <section class="cs__chapters" aria-label="Project story">
+      <div class="wrap">
+        {
+          chapters.map((c) => (
+            <div class="cs__chapter grid" data-reveal>
+              <h2 class="cs__chapter-label label">
+                <span class="accent">{c.n}</span> {c.label}
+              </h2>
+              <p class="cs__chapter-text body-l">{c.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    {
+      data.gallery.length > 0 && (
+        <section class="section cs__gallery" aria-label="Gallery">
+          <div class="wrap">
+            <div class="cs__grid grid">
+              {data.gallery.map((g, i) => (
+                <figure class={`cs__g cs__g--${g.size}`}>
+                  <div class="media" data-reveal-img style={`--d:${(i % 2) * 120}`}>
+                    <Picture
+                      src={g.src}
+                      alt={g.alt}
+                      widths={g.size === 'full' ? [800, 1400, 2000] : [500, 900, 1300]}
+                      sizes={g.size === 'full' ? '100vw' : g.size === 'tall' ? '(max-width: 760px) 100vw, 33vw' : '(max-width: 760px) 100vw, 60vw'}
+                      formats={['avif', 'webp']}
+                    />
+                  </div>
+                  {g.caption && (
+                    <figcaption class="caption label">
+                      <span>{g.caption}</span>
+                      <span>{String(i + 1).padStart(2, '0')}</span>
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      data.deliverables.length > 0 && (
+        <section class="section cs__deliver" aria-labelledby="deliver-title">
+          <div class="wrap grid">
+            <h2 id="deliver-title" class="label cs__deliver-label">
+              Final deliverables
+            </h2>
+            <ul class="cs__deliver-list">
+              {data.deliverables.map((d, i) => (
+                <li class="display-s" data-reveal style={`--d:${i * 60}`}>
+                  <span class="label">{String(i + 1).padStart(2, '0')}</span>
+                  {d}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      next && next.id !== project.id && (
+        <a class="cs__next" href={`/work/${next.id}/`} data-cursor="Next project">
+          <div class="wrap cs__next-in">
+            <span class="label label--muted">Next project</span>
+            <span class="display-xl cs__next-title">
+              {next.data.title} <Arrow class="cs__next-arrow" />
+            </span>
+            <span class="label label--muted">{next.data.category}</span>
+          </div>
+          <div class="cs__next-media" aria-hidden="true">
+            <Picture src={next.data.cover} alt="" widths={[400, 700]} sizes="28vw" formats={['avif', 'webp']} />
+          </div>
+        </a>
+      )
+    }
+
+    {
+      related.length > 0 && (
+        <section class="section cs__related" aria-labelledby="related-title">
+          <div class="wrap">
+            <div class="cs__related-head">
+              <h2 id="related-title" class="display-m">
+                Related <span class="serif">work</span>
+              </h2>
+              <Button href="/work/" variant="line">
+                All projects
+              </Button>
+            </div>
+            <div class="grid cs__related-grid">
+              {related.map((p, i) => (
+                <ProjectCard project={p} ratio={i === 0 ? '4 / 3' : '4 / 3'} class="cs__related-item" sizes="(max-width: 760px) 100vw, 50vw" />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .cs__intro {
+    padding-bottom: clamp(32px, 4vw, 64px);
+  }
+  .cs__title {
+    overflow-wrap: anywhere;
+  }
+  .cs__facts {
+    margin-top: clamp(32px, 4vw, 64px);
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    row-gap: 24px;
+  }
+  .cs__facts > div {
+    grid-column: span 3;
+  }
+  .cs__facts dd {
+    margin-top: 6px;
+  }
+  .cs__facts .cs__facts-wide {
+    grid-column: span 6;
+  }
+
+  .cs__cover-media {
+    height: clamp(380px, 88vh, 1080px);
+    background: var(--tone);
+  }
+  .cs__cover-inner {
+    position: absolute;
+    inset: -10% 0;
+  }
+  .cs__cover-inner :global(img),
+  .cs__cover-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cs__overview .grid {
+    row-gap: 16px;
+  }
+  .cs__overview-label {
+    grid-column: 1 / span 3;
+    padding-top: 0.7em;
+  }
+  .cs__lede {
+    grid-column: 4 / span 9;
+    font-family: var(--f-display);
+    font-weight: 500;
+    font-size: clamp(1.5rem, 3vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+  }
+
+  .cs__chapter {
+    padding-block: clamp(32px, 4vw, 56px);
+    border-top: 1px solid var(--line);
+    row-gap: 16px;
+  }
+  .cs__chapter-label {
+    grid-column: 1 / span 3;
+    padding-top: 0.35em;
+  }
+  .cs__chapter-text {
+    grid-column: 4 / span 7;
+    max-width: 62ch;
+  }
+
+  .cs__grid {
+    row-gap: var(--gutter);
+    grid-auto-flow: dense;
+  }
+  .cs__g--full {
+    grid-column: 1 / -1;
+  }
+  .cs__g--full .media {
+    aspect-ratio: 16 / 9;
+  }
+  .cs__g--wide {
+    grid-column: span 8;
+  }
+  .cs__g--wide .media {
+    aspect-ratio: 3 / 2;
+  }
+  .cs__g--half {
+    grid-column: span 6;
+  }
+  .cs__g--half .media {
+    aspect-ratio: 4 / 5;
+  }
+  .cs__g--tall {
+    grid-column: span 4;
+  }
+  .cs__g--tall .media {
+    aspect-ratio: 3 / 4;
+  }
+  .cs__grid {
+    align-items: start;
+  }
+
+  .cs__deliver {
+    background: var(--tone);
+    color: var(--paper);
+    --muted: rgba(236, 232, 225, 0.72);
+    --line: rgba(236, 232, 225, 0.22);
+  }
+  .cs__deliver .grid {
+    row-gap: 24px;
+  }
+  .cs__deliver-label {
+    grid-column: 1 / span 3;
+    padding-top: 0.5em;
+  }
+  .cs__deliver-list {
+    grid-column: 4 / span 9;
+    border-top: 1px solid var(--line);
+  }
+  .cs__deliver-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cs__deliver-list .label {
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .cs__next {
+    position: relative;
+    display: block;
+    padding-block: clamp(64px, 9vw, 150px);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .cs__next-in {
+    display: grid;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .cs__next-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+    transition: color 0.4s;
+  }
+  .cs__next:hover .cs__next-title {
+    color: var(--signal);
+  }
+  .cs__next :global(.cs__next-arrow) {
+    width: 0.55em;
+    height: 0.55em;
+    flex: none;
+    transition: transform 0.6s var(--ease);
+  }
+  .cs__next:hover :global(.cs__next-arrow) {
+    transform: translateX(0.12em) rotate(-45deg);
+  }
+  .cs__next-media {
+    position: absolute;
+    right: var(--gutter);
+    top: 50%;
+    width: min(28vw, 380px);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    transform: translateY(-50%) scale(0.9) rotate(3deg);
+    opacity: 0;
+    transition:
+      opacity 0.5s,
+      transform 0.8s var(--ease);
+  }
+  .cs__next:hover .cs__next-media {
+    opacity: 1;
+    transform: translateY(-50%) scale(1) rotate(0);
+  }
+  .cs__next-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cs__related-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: clamp(32px, 4vw, 64px);
+  }
+  .cs__related-grid {
+    row-gap: 56px;
+  }
+  .cs__related-grid :global(.cs__related-item) {
+    grid-column: span 6;
+  }
+
+  @media (max-width: 900px) {
+    .cs__facts > div,
+    .cs__facts .cs__facts-wide {
+      grid-column: span 6;
+    }
+    .cs__overview-label,
+    .cs__lede,
+    .cs__chapter-label,
+    .cs__chapter-text,
+    .cs__deliver-label,
+    .cs__deliver-list {
+      grid-column: 1 / -1;
+    }
+    .cs__g--wide,
+    .cs__g--half {
+      grid-column: 1 / -1;
+    }
+    .cs__g--tall {
+      grid-column: span 6;
+    }
+    .cs__next-media {
+      display: none;
+    }
+  }
+  @media (max-width: 600px) {
+    .cs__facts > div,
+    .cs__facts .cs__facts-wide,
+    .cs__g--tall,
+    .cs__related-grid :global(.cs__related-item) {
+      grid-column: 1 / -1;
+    }
+    .cs__g--full .media {
+      aspect-ratio: 4 / 5;
+    }
+  }
+</style>

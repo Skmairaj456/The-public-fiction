@@ -1,0 +1,93 @@
+---
+import { Picture } from 'astro:assets';
+import type { Project } from '@/lib/content';
+
+interface Props {
+  project: Project;
+  index?: number;
+  /** CSS aspect-ratio for the cover, e.g. "4 / 5". */
+  ratio?: string;
+  sizes?: string;
+  class?: string;
+  eager?: boolean;
+}
+
+const { project, index, ratio = '4 / 3', sizes = '(max-width: 760px) 100vw, 50vw', class: className = '', eager = false } = Astro.props;
+const { data } = project;
+const href = `/work/${project.id}/`;
+const num = index !== undefined ? String(index + 1).padStart(2, '0') : undefined;
+---
+
+<article class:list={['pc', className]} data-category={data.category}>
+  <a href={href} class="pc__link" data-cursor="View project" aria-label={`${data.title} — ${data.category}${data.sample ? ' (sample project)' : ''}`}>
+    <div class="pc__media media" style={`aspect-ratio:${ratio}`} data-reveal-img>
+      <Picture
+        src={data.cover}
+        alt={data.coverAlt}
+        widths={[480, 800, 1200, 1600]}
+        sizes={sizes}
+        formats={['avif', 'webp']}
+        loading={eager ? 'eager' : 'lazy'}
+      />
+      {data.sample && <span class="pc__badge tag tag--sample">Sample project</span>}
+    </div>
+    <div class="pc__meta">
+      <h3 class="pc__title display-s">
+        {num && <span class="pc__num label">{num}</span>}
+        {data.title}
+      </h3>
+      <p class="pc__info label label--muted">
+        <span>{data.category}</span>
+        {data.year && <span>{data.year}</span>}
+      </p>
+    </div>
+    <p class="pc__summary muted">{data.client ? `${data.client} — ` : ''}{data.summary}</p>
+  </a>
+</article>
+
+<style>
+  .pc__link {
+    display: block;
+  }
+  .pc__media :global(img) {
+    transition: transform 1.2s var(--ease), filter 0.6s;
+  }
+  .pc__link:hover .pc__media :global(img) {
+    transform: scale(1.045) !important;
+  }
+  .pc__badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+  }
+  .pc__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .pc__title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    transition: color 0.3s;
+  }
+  .pc__link:hover .pc__title {
+    color: var(--signal);
+  }
+  .pc__num {
+    color: var(--signal);
+    transform: translateY(-0.35em);
+  }
+  .pc__info {
+    display: flex;
+    gap: 14px;
+    flex: none;
+    text-align: right;
+  }
+  .pc__summary {
+    margin-top: 8px;
+    max-width: 52ch;
+  }
+</style>

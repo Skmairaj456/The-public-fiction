@@ -1,0 +1,541 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '@/layouts/Base.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import Button from '@/components/Button.astro';
+import Arrow from '@/components/Arrow.astro';
+import Marquee from '@/components/Marquee.astro';
+import WorkShowcase from '@/components/WorkShowcase.astro';
+import ServicesAccordion from '@/components/ServicesAccordion.astro';
+import Process from '@/components/Process.astro';
+import Clients from '@/components/Clients.astro';
+import Testimonials from '@/components/Testimonials.astro';
+import JournalCard from '@/components/JournalCard.astro';
+import ContactSection from '@/components/ContactSection.astro';
+import { site } from '@/config/site';
+import { approach, testimonials } from '@/data/studio';
+import { getProjects, getPosts } from '@/lib/content';
+
+import heroCampaign from '@/assets/img/hero-yellow.jpg';
+import pillCampaign from '@/assets/img/fashion-red.jpg';
+import pillFilm from '@/assets/img/projector.jpg';
+import pillEvent from '@/assets/img/concert-lasers.jpg';
+import aboutStrategy from '@/assets/img/team-wall.jpg';
+import aboutProduction from '@/assets/img/clapper-yellow.jpg';
+
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured).slice(0, 6);
+const showcase = featured.length ? featured : projects.slice(0, 6);
+const posts = (await getPosts()).slice(0, 3);
+
+// Keep section numbers sequential when the testimonials section is hidden.
+const showTestimonials = testimonials.length > 0 || import.meta.env.DEV;
+const n = (i: number) => String(i).padStart(2, '0');
+const journalNo = n(showTestimonials ? 8 : 7);
+const contactNo = n(showTestimonials ? 9 : 8);
+
+const disciplines = ['Strategy', 'identity', 'Advertising', 'photography', 'Film', 'social', 'Events', 'digital'] as const;
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+  },
+];
+---
+
+<Base intro schema={schema}>
+  <!-- 01 — HERO ----------------------------------------------------------- -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero__meta label" data-reveal>
+        <span>(Independent creative company)</span>
+        <span class="hero__meta-mid">Strategy — Advertising — Production</span>
+        <span class="label--muted">Scroll to explore ↓</span>
+      </div>
+
+      <h1 id="hero-title" class="display-xl hero__title" data-split aria-label="We make brands impossible to ignore.">
+        <span class="lm" aria-hidden="true"><span style="--i:0">We make brands</span></span>
+        <span class="lm hero__l2" aria-hidden="true">
+          <span style="--i:1">
+            <span class="hero__pill" data-hero-pill>
+              <Picture src={pillCampaign} alt="" widths={[240, 480]} sizes="22vw" formats={['avif', 'webp']} loading="eager" />
+              <Picture src={pillFilm} alt="" widths={[240, 480]} sizes="22vw" formats={['avif', 'webp']} />
+              <Picture src={pillEvent} alt="" widths={[240, 480]} sizes="22vw" formats={['avif', 'webp']} />
+            </span>
+            <span class="serif accent">impossible</span>
+          </span>
+        </span>
+        <span class="lm hero__l3" aria-hidden="true"><span style="--i:2">to ignore.</span></span>
+      </h1>
+
+      <div class="hero__foot grid">
+        <p class="hero__copy lede" data-reveal style="--d:300">
+          We build brands, create campaigns and produce visual experiences that make people stop, look and remember.
+        </p>
+        <div class="hero__ctas" data-reveal style="--d:420">
+          <Button href="#work">Explore our work</Button>
+          <Button href="/contact/" variant="line">Start a project</Button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <figure class="still" aria-label="Campaign still">
+    <div class="still__media media" data-reveal-img>
+      <div class="still__inner" data-parallax="-0.12">
+        <Picture
+          src={heroCampaign}
+          alt="A model in a bright yellow tracksuit standing on an empty beach under a pale sky"
+          widths={[800, 1280, 1920, 2400]}
+          sizes="100vw"
+          formats={['avif', 'webp']}
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+    </div>
+    <figcaption class="wrap still__cap label">
+      <span>Fig. 01 — Campaign still</span>
+      <span class="tag tag--sample">Sample imagery</span>
+    </figcaption>
+  </figure>
+
+  <Marquee items={disciplines} />
+
+  <!-- 02 — INTRODUCTION ----------------------------------------------------- -->
+  <section class="section about" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <SectionHead number="02" label="The company" />
+      <div class="grid about__head">
+        <p class="about__kicker label label--muted" data-reveal>Strategy, creativity and production — under one roof.</p>
+        <SplitHeading id="about-title" class="display-l about__title" lines={['Not just another', '*creative* agency.']} />
+      </div>
+
+      <div class="grid about__body">
+        <div class="about__copy" data-reveal>
+          <p class="lede">
+            We bring strategy, creativity and production together to help brands find their voice, reach their audience and
+            make an impression.
+          </p>
+          <p class="muted">
+            Most companies hire one team to think, another to design and a third to shoot — then wonder why the idea gets
+            lost on the way. We keep it in one place. The people who shape the strategy are in the room when it’s
+            photographed, filmed, launched and measured.
+          </p>
+          <a href="/studio/" class="arrow-link label ulink">About the studio <Arrow class="" /></a>
+        </div>
+
+        <ol class="about__steps" aria-label="How we work">
+          {
+            approach.map((step, i) => (
+              <li data-reveal style={`--d:${i * 80}`}>
+                <span class="label">{n(i + 1)}</span>
+                <span class="display-s">{step}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <div class="grid about__media">
+        <figure class="about__fig about__fig--a">
+          <div class="media" data-reveal-img>
+            <Picture src={aboutStrategy} alt="A team planning a campaign around a wall of sticky notes" widths={[600, 900, 1300]} sizes="(max-width: 760px) 100vw, 42vw" formats={['avif', 'webp']} />
+          </div>
+          <figcaption class="caption label"><span>Think</span><span>Strategy session</span></figcaption>
+        </figure>
+        <figure class="about__fig about__fig--b">
+          <div class="media" data-reveal-img style="--d:150">
+            <Picture src={aboutProduction} alt="A clapperboard on a bright yellow background" widths={[500, 800, 1100]} sizes="(max-width: 760px) 100vw, 33vw" formats={['avif', 'webp']} />
+          </div>
+          <figcaption class="caption label"><span>Make</span><span>Production</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — SELECTED WORK --------------------------------------------------- -->
+  <section class="section work" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <SectionHead number="03" label="Selected work / 01" aside={`${projects.length} projects`} />
+      <div class="grid work__head">
+        <SplitHeading id="work-title" class="display-l work__title" lines={['Ideas are good.', 'Execution is', '*everything.*']} />
+        <div class="work__intro" data-reveal>
+          <p class="muted">
+            Campaigns, identities, shoots, films and events — a cross-section of what we make and how we think. The
+            projects shown are sample work that demonstrates our approach.
+          </p>
+          <a class="arrow-link label ulink" href="/work/">View all work <Arrow class="" /></a>
+        </div>
+      </div>
+      <WorkShowcase projects={showcase} />
+      <div class="work__more" data-reveal>
+        <Button href="/work/" variant="line">See every project</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 — WHAT WE DO ------------------------------------------------------ -->
+  <section class="section theme-ink services" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <SectionHead number="04" label="What we do" aside="Six disciplines, one team" />
+      <div class="grid services__head">
+        <SplitHeading id="services-title" class="display-l services__title" lines={['From the first idea', 'to the *final*', 'impression.']} />
+      </div>
+      <ServicesAccordion />
+    </div>
+  </section>
+
+  <!-- 05 — APPROACH -------------------------------------------------------- -->
+  <section class="section theme-paper-2 approach" aria-labelledby="approach-title">
+    <div class="wrap">
+      <SectionHead number="05" label="Our approach" />
+      <div class="grid approach__head">
+        <SplitHeading id="approach-title" class="display-l approach__title" lines={["Good work doesn't", 'happen *by accident.*']} />
+        <p class="approach__copy muted" data-reveal>
+          Five stages, no mystery. Every project — a single shoot or a full rebrand — moves through the same honest
+          process, so you always know what’s happening and why.
+        </p>
+      </div>
+      <Process />
+    </div>
+  </section>
+
+  <!-- 06 — CLIENTS --------------------------------------------------------- -->
+  <Clients number="06" />
+
+  <!-- 07 — TESTIMONIALS (hidden until real feedback is added) -------------- -->
+  <Testimonials number="07" />
+
+  <!-- 08 — JOURNAL --------------------------------------------------------- -->
+  <section class="section journal" aria-labelledby="journal-title">
+    <div class="wrap">
+      <SectionHead number={journalNo} label="Journal" />
+      <div class="grid journal__head">
+        <SplitHeading id="journal-title" class="display-l journal__title" lines={['Thoughts,', 'observations & other', '*good ideas.*']} />
+      </div>
+      {
+        posts.length > 0 ? (
+          <div class="grid journal__grid">
+            <div class="journal__lead">
+              <JournalCard post={posts[0]} variant="large" sizes="(max-width: 900px) 100vw, 55vw" />
+            </div>
+            <div class="journal__list">
+              {posts.slice(1).map((p) => (
+                <JournalCard post={p} />
+              ))}
+              <a class="arrow-link label ulink journal__all" href="/journal/">
+                Read the journal <Arrow class="" />
+              </a>
+            </div>
+          </div>
+        ) : (
+          <p class="empty">New writing is on its way.</p>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- 09 — CONTACT --------------------------------------------------------- -->
+  <ContactSection number={contactNo} />
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding-top: calc(var(--header-h) + clamp(28px, 5vw, 72px));
+    padding-bottom: clamp(40px, 6vw, 96px);
+  }
+  .hero__meta {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(28px, 5vw, 72px);
+  }
+  .hero__meta > :last-child {
+    text-align: right;
+  }
+  .hero__title .lm > span {
+    white-space: nowrap;
+  }
+  .hero__l2 > span {
+    display: flex !important;
+    align-items: center;
+    gap: 0.12em;
+    padding-left: 13%;
+  }
+  .hero__l3 {
+    text-align: right;
+  }
+  .hero__pill {
+    position: relative;
+    flex: none;
+    display: inline-block;
+    width: 1.9em;
+    height: 0.74em;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--paper-3);
+    transform: translateY(0.04em);
+  }
+  .hero__pill :global(picture) {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.9s var(--ease);
+  }
+  .hero__pill :global(picture:first-child),
+  .hero__pill :global(picture.is-on) {
+    opacity: 1;
+  }
+  .hero__pill :global(picture.is-off) {
+    opacity: 0;
+  }
+  .hero__pill :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hero__foot {
+    margin-top: clamp(32px, 5vw, 80px);
+    row-gap: 28px;
+    align-items: end;
+  }
+  .hero__copy {
+    grid-column: 1 / span 5;
+    max-width: 30ch;
+  }
+  .hero__ctas {
+    grid-column: 7 / span 6;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  /* Cinematic still */
+  .still {
+    position: relative;
+  }
+  .still__media {
+    height: clamp(420px, 92vh, 1100px);
+  }
+  .still__inner {
+    position: absolute;
+    inset: -12% 0;
+  }
+  .still__inner :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 40%;
+  }
+  .still__cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--paper);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* About */
+  .about__head {
+    row-gap: 24px;
+    align-items: start;
+  }
+  .about__kicker {
+    grid-column: 1 / span 3;
+    padding-top: 0.8em;
+    max-width: 22ch;
+  }
+  .about__title {
+    grid-column: 4 / span 9;
+  }
+  .about__body {
+    margin-top: clamp(40px, 6vw, 100px);
+    row-gap: 48px;
+  }
+  .about__copy {
+    grid-column: 4 / span 4;
+    display: grid;
+    gap: 24px;
+    align-content: start;
+    justify-items: start;
+  }
+  .about__steps {
+    grid-column: 9 / span 4;
+    border-top: 1px solid var(--line);
+  }
+  .about__steps li {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .about__steps .label {
+    color: var(--signal);
+  }
+  .about__steps .display-s {
+    font-size: clamp(1.15rem, 1.6vw, 1.6rem);
+  }
+  .about__media {
+    margin-top: clamp(64px, 9vw, 160px);
+    row-gap: 40px;
+    align-items: start;
+  }
+  .about__fig--a {
+    grid-column: 1 / span 5;
+  }
+  .about__fig--a .media {
+    aspect-ratio: 4 / 5;
+  }
+  .about__fig--b {
+    grid-column: 8 / span 4;
+    margin-top: clamp(80px, 14vw, 260px);
+  }
+  .about__fig--b .media {
+    aspect-ratio: 1;
+  }
+
+  /* Work */
+  .work__head,
+  .services__head,
+  .approach__head,
+  .journal__head {
+    row-gap: 28px;
+    align-items: end;
+    margin-bottom: clamp(48px, 7vw, 120px);
+  }
+  .work__title {
+    grid-column: 1 / span 8;
+  }
+  .work__intro {
+    grid-column: 9 / span 4;
+    display: grid;
+    gap: 20px;
+    justify-items: start;
+  }
+  .work__more {
+    margin-top: clamp(64px, 8vw, 140px);
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Services */
+  .services__title {
+    grid-column: 1 / span 10;
+  }
+
+  /* Approach */
+  .approach__title {
+    grid-column: 1 / span 8;
+  }
+  .approach__copy {
+    grid-column: 9 / span 4;
+  }
+
+  /* Journal */
+  .journal__title {
+    grid-column: 1 / span 10;
+  }
+  .journal__grid {
+    row-gap: 48px;
+  }
+  .journal__lead {
+    grid-column: 1 / span 7;
+  }
+  .journal__list {
+    grid-column: 8 / span 5;
+    display: grid;
+    gap: 40px;
+    align-content: start;
+  }
+  .journal__all {
+    justify-self: start;
+  }
+
+  @media (max-width: 1000px) {
+    .work__title,
+    .work__intro,
+    .approach__title,
+    .approach__copy,
+    .journal__lead,
+    .journal__list,
+    .services__title,
+    .journal__title {
+      grid-column: 1 / -1;
+    }
+    .about__kicker,
+    .about__title,
+    .about__copy,
+    .about__steps {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 760px) {
+    .hero__meta {
+      grid-template-columns: 1fr auto;
+    }
+    .hero__meta-mid {
+      display: none;
+    }
+    .hero__title {
+      font-size: clamp(2.6rem, 15.5vw, 6rem);
+    }
+    .hero__title .lm > span {
+      white-space: normal;
+    }
+    .hero__pill {
+      width: 1.25em;
+    }
+    .hero__l2 > span {
+      padding-left: 0;
+    }
+    .hero__copy,
+    .hero__ctas {
+      grid-column: 1 / -1;
+    }
+    .hero__ctas {
+      justify-content: flex-start;
+    }
+    .still__media {
+      height: 72vh;
+    }
+    .about__fig--a,
+    .about__fig--b {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+    .about__fig--b {
+      width: 72%;
+      justify-self: end;
+    }
+  }
+</style>
+
+<script>
+  // Cycle the hero pill: campaign → film → event.
+  const pill = document.querySelector<HTMLElement>('[data-hero-pill]');
+  if (pill && !document.documentElement.classList.contains('reduce-motion')) {
+    const frames = Array.from(pill.querySelectorAll('picture'));
+    let i = 0;
+    setInterval(() => {
+      frames[i].classList.remove('is-on');
+      frames[i].classList.add('is-off');
+      i = (i + 1) % frames.length;
+      frames[i].classList.remove('is-off');
+      frames[i].classList.add('is-on');
+    }, 2200);
+  }
+</script>

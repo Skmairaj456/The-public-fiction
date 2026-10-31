@@ -1,0 +1,119 @@
+---
+/**
+ * Clients & collaborators. Renders the names/logos listed in src/data/studio.ts.
+ * With no approved clients listed, it shows the positioning statement only —
+ * never invented names.
+ */
+import { Image } from 'astro:assets';
+import { clients } from '@/data/studio';
+import SectionHead from './SectionHead.astro';
+import SplitHeading from './SplitHeading.astro';
+import Button from './Button.astro';
+
+interface Props {
+  number?: string;
+}
+const { number = '06' } = Astro.props;
+---
+
+<section class="section clients" aria-labelledby="clients-title">
+  <div class="wrap">
+    <SectionHead number={number} label="Clients & collaborators" />
+    <div class="grid clients__head">
+      <SplitHeading id="clients-title" class="display-l clients__title" lines={['Good people.', '*Ambitious* ideas.']} />
+      <div class="clients__copy" data-reveal>
+        <p class="lede">
+          We work best with founders, marketers and makers who would rather be remembered than merely seen — and who
+          are happy to be asked a difficult question or two.
+        </p>
+        {clients.length === 0 && <Button href="/contact/" variant="line">Become one of them</Button>}
+      </div>
+    </div>
+
+    {
+      clients.length > 0 && (
+        <ul class="clients__grid" aria-label="Selected clients and collaborators">
+          {clients.map((c, i) => {
+            const inner = c.logo ? (
+              <Image src={c.logo} alt={c.name} class="clients__logo" width={240} />
+            ) : (
+              <span class="display-s">{c.name}</span>
+            );
+            return (
+              <li class="clients__cell" data-reveal style={`--d:${(i % 4) * 70}`}>
+                {c.url ? (
+                  <a href={c.url} target="_blank" rel="noopener noreferrer">
+                    {inner}
+                  </a>
+                ) : (
+                  inner
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+
+    {
+      clients.length === 0 && import.meta.env.DEV && (
+        <p class="dev-note">
+          <strong>Editor note (dev only):</strong> no clients listed yet. Add approved clients and logos to
+          <code>src/data/studio.ts → clients</code> and a logo wall appears here automatically.
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .clients__head {
+    row-gap: 32px;
+    align-items: end;
+  }
+  .clients__title {
+    grid-column: 1 / span 7;
+  }
+  .clients__copy {
+    grid-column: 8 / span 5;
+    display: grid;
+    gap: 28px;
+    justify-items: start;
+  }
+  .clients__grid {
+    margin-top: clamp(48px, 6vw, 96px);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .clients__cell {
+    display: grid;
+    place-items: center;
+    min-height: clamp(120px, 12vw, 200px);
+    padding: 24px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+  }
+  .clients__cell :global(.clients__logo) {
+    max-height: 56px;
+    width: auto;
+    filter: grayscale(1);
+    opacity: 0.8;
+    transition: filter 0.4s, opacity 0.4s;
+  }
+  .clients__cell:hover :global(.clients__logo) {
+    filter: none;
+    opacity: 1;
+  }
+  @media (max-width: 900px) {
+    .clients__title,
+    .clients__copy {
+      grid-column: 1 / -1;
+    }
+    .clients__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

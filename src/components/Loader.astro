@@ -1,0 +1,89 @@
+---
+/**
+ * Brand intro, shown once per browser session on the home page.
+ * Skipped entirely without JS, on repeat visits and for reduced-motion users.
+ */
+---
+
+<script is:inline>
+  (function () {
+    try {
+      var d = document.documentElement;
+      if (d.classList.contains('reduce-motion') || sessionStorage.getItem('tpf-intro')) return;
+      sessionStorage.setItem('tpf-intro', '1');
+      d.classList.add('has-intro');
+    } catch (e) {}
+  })();
+</script>
+
+<div class="intro theme-ink" aria-hidden="true" data-intro>
+  <div class="intro__words">
+    <span class="lm"><span style="--i:0">The Public</span></span>
+    <span class="lm"><span class="serif" style="--i:1">fiction</span></span>
+  </div>
+  <div class="intro__bar"><i></i></div>
+</div>
+
+<style>
+  .intro {
+    display: none;
+  }
+  :global(html.has-intro) .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    animation: intro-out 0.9s var(--ease-io) 1.5s forwards;
+  }
+  .intro__words {
+    text-align: center;
+    font-family: var(--f-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.045em;
+    font-size: clamp(3rem, 10vw, 9rem);
+    line-height: 0.88;
+  }
+  .intro__words .serif {
+    text-transform: none;
+    font-size: 1.12em;
+    letter-spacing: -0.01em;
+  }
+  .intro__words .lm > span {
+    animation: intro-line 0.9s var(--ease) both;
+    animation-delay: calc(var(--i) * 120ms + 100ms);
+  }
+  .intro__bar {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 32px;
+    height: 1px;
+    background: var(--line);
+  }
+  .intro__bar i {
+    display: block;
+    height: 100%;
+    background: var(--signal);
+    transform-origin: left;
+    animation: intro-bar 1.35s var(--ease-io) both;
+  }
+  @keyframes intro-line {
+    from {
+      transform: translateY(108%);
+    }
+  }
+  @keyframes intro-bar {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes intro-out {
+    to {
+      clip-path: inset(0 0 100% 0);
+      visibility: hidden;
+    }
+  }
+</style>

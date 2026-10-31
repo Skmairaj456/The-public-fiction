@@ -1,0 +1,42 @@
+---
+import Base from '@/layouts/Base.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import Button from '@/components/Button.astro';
+---
+
+<Base title="Page not found" description="This page doesn’t exist." noindex>
+  <section class="nf page-intro">
+    <div class="wrap">
+      <div class="page-intro__meta label">
+        <span>(Error) 404</span>
+      </div>
+      <SplitHeading as="h1" class="display-xl" lines={['This page is', 'pure *fiction.*']} />
+      <div class="nf__foot" data-reveal>
+        <p class="lede muted">The page you’re looking for has moved, never existed or is still being written.</p>
+        <div class="nf__btns">
+          <Button href="/">Back to home</Button>
+          <Button href="/work/" variant="line">See the work</Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+  }
+  .nf__foot {
+    margin-top: 48px;
+    display: grid;
+    gap: 28px;
+    justify-items: start;
+  }
+  .nf__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>

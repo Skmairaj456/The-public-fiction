@@ -1,0 +1,19 @@
+---
+import Base from '@/layouts/Base.astro';
+import ContactSection from '@/components/ContactSection.astro';
+---
+
+<Base
+  title="Start a project"
+  description="Have a brand to build, a campaign to launch or an idea that deserves to exist? Tell THE PUBLIC FICTION about your project."
+>
+  <div class="ct">
+    <ContactSection number="01" headingLevel="h1" />
+  </div>
+</Base>
+
+<style>
+  .ct :global(.contact) {
+    padding-top: calc(var(--header-h) + clamp(48px, 7vw, 110px));
+  }
+</style>
