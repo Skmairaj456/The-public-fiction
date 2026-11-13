@@ -78,8 +78,6 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     display: block;
     position: absolute;
     inset: 0;
-    perspective: 520px;
-    perspective-origin: 50% 50%;
   }
   :global(html.js:not(.reduce-motion)) .tun__center,
   :global(html.js:not(.reduce-motion)) .tun__hint {
@@ -91,7 +89,6 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     top: 50%;
     width: 0;
     height: 0;
-    transform-style: preserve-3d;
   }
   .tun__tube :global(span) {
     position: absolute;
@@ -104,7 +101,6 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     line-height: 1;
     font-size: var(--tun-size, 64px);
     color: var(--paper);
-    backface-visibility: hidden;
     /* Pivot on the tunnel's axis, not each word's own centre, so long words
        don't drag the vanishing point off-centre. */
     transform-origin: 0 0;
@@ -148,9 +144,10 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     const center = section.querySelector<HTMLElement>('[data-tun-center]')!;
     const words: string[] = JSON.parse(section.querySelector('template')!.innerHTML);
 
-    let items: { el: HTMLElement; angle: number; z: number }[] = [];
+    let items: { el: HTMLElement; angle: number; z: number; w: number }[] = [];
     let R = 0;
     let L = 0;
+    const P = 520; // perspective distance, px
 
     const build = () => {
       tube.innerHTML = '';
@@ -172,10 +169,13 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
           else if (pick === 4) el.className = 'is-lime';
           tube.appendChild(el);
           // Stagger alternate sides so words never line up in rows.
-          items.push({ el, angle: (360 / sides) * s + (r % 2) * (180 / sides), z: r * gap + (s % 2) * gap * 0.5 });
+          items.push({ el, angle: (360 / sides) * s + (r % 2) * (180 / sides), z: r * gap + (s % 2) * gap * 0.5, w: 0 });
         }
       }
+      sizeWords();
     };
+    // Each word's unscaled length, used to project both of its ends.
+    const sizeWords = () => items.forEach((it) => (it.w = it.el.offsetWidth));
 
     let progress = 0;
     let visible = false;
@@ -191,8 +191,26 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
         const z = -d + 260;
         const fadeIn = Math.min(1, (L - d) / (L * 0.35));
         const fadeOut = Math.min(1, Math.max(0, (d - 60) / 340));
+        const depth = P - z;
+        if (depth < 40) {
+          it.el.style.opacity = '0';
+          continue;
+        }
         it.el.style.opacity = String(Math.max(0, fadeIn * fadeOut));
-        it.el.style.transform = `rotateZ(${it.angle + spin}deg) translate3d(${R}px, 0, ${z}px) rotateY(-90deg) translate(-50%, -50%)`;
+        // Perspective is projected here rather than with CSS 3D, so the
+        // tunnel renders the same in every browser (Safari drops words that
+        // reach the camera plane). Each word lies along the tunnel wall: its
+        // far end and near end are projected separately and the word is
+        // stretched between them. A near end that reaches the camera is
+        // pushed off-screen, so nothing ever streaks across the centre.
+        const half = it.w / 2;
+        const rFar = (R * P) / (depth + half);
+        const rNear = (R * P) / Math.max(30, depth - half);
+        const rc = (rFar + rNear) / 2;
+        const sx = it.w ? (rNear - rFar) / it.w : 1;
+        const sy = P / depth;
+        const a = ((it.angle + spin) * Math.PI) / 180;
+        it.el.style.transform = `translate3d(${(rc * Math.cos(a)).toFixed(1)}px, ${(rc * Math.sin(a)).toFixed(1)}px, 0) rotate(${a.toFixed(4)}rad) scale(${sx.toFixed(3)}, ${sy.toFixed(3)}) translate(-50%, -50%)`;
       }
       center.style.opacity = String(Math.max(0, (progress - 0.78) / 0.16));
     };
@@ -209,6 +227,10 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
 
     build();
     measure();
+    document.fonts?.ready.then(() => {
+      sizeWords();
+      measure();
+    });
 
     new IntersectionObserver(([e]) => (visible = e.isIntersecting), { rootMargin: '100px' }).observe(section);
     addEventListener('scroll', () => visible && measure(), { passive: true });
