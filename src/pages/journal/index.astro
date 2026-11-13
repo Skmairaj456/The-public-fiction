@@ -1,7 +1,9 @@
 ---
 import Base from '@/layouts/Base.astro';
 import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
 import JournalCard from '@/components/JournalCard.astro';
+import Sticker from '@/components/Sticker.astro';
 import { getPosts } from '@/lib/content';
 
 const posts = await getPosts();
@@ -9,29 +11,21 @@ const [lead, ...rest] = posts;
 const topics = [...new Set(posts.map((p) => p.data.topic))];
 ---
 
-<Base
-  title="Journal"
-  description="Marketing insights, branding, advertising, production notes and creative inspiration from THE PUBLIC FICTION."
->
+<Base title="Journal" description="Marketing insights, branding, advertising, production notes and creative inspiration from THE PUBLIC FICTION.">
   <section class="page-intro">
-    <div class="wrap">
-      <div class="page-intro__meta label">
-        <span>(Journal) Writing</span>
-        <span class="label--muted">{posts.length} {posts.length === 1 ? 'article' : 'articles'}</span>
+    <div class="wrap jl-head">
+      <SectionHead label="Journal" aside={`${posts.length} ${posts.length === 1 ? 'article' : 'articles'}`} />
+      <h1 class="jl-mega" data-split aria-label="Journal">
+        <span class="lm" aria-hidden="true"><span class="mega" data-fit>Journal</span></span>
+      </h1>
+      <div class="jl-intro">
+        <SplitHeading as="p" class="stack" lines={['~Thoughts,', '>observations &', '>>other good ideas.']} />
+        <div data-reveal>
+          <p class="lede">Notes on brands, campaigns and the craft of making things people notice.</p>
+          {topics.length > 0 && <ul class="jl-topics" aria-label="Topics">{topics.map((t) => <li class="chip">{t}</li>)}</ul>}
+        </div>
       </div>
-      <SplitHeading as="h1" class="display-xl" lines={['Thoughts,', 'observations &', 'other *good ideas.*']} />
-      <div class="page-intro__foot">
-        <p class="lede" data-reveal>
-          Notes on brands, campaigns and the craft of making things people notice. Written by the people doing the work.
-        </p>
-      </div>
-      {
-        topics.length > 0 && (
-          <p class="jl__topics label label--muted" data-reveal>
-            Topics: {topics.join(' · ')}
-          </p>
-        )
-      }
+      <Sticker name="pencil" class="jl-stk" data-pop />
     </div>
   </section>
 
@@ -40,13 +34,13 @@ const topics = [...new Set(posts.map((p) => p.data.topic))];
       {
         lead ? (
           <>
-            <div class="jl__lead">
-              <JournalCard post={lead} variant="large" sizes="(max-width: 900px) 100vw, 70vw" />
+            <div class="jl-lead">
+              <JournalCard post={lead} sizes="(max-width: 900px) 100vw, 60vw" />
             </div>
             {rest.length > 0 && (
-              <div class="jl__grid">
+              <div class="jl-grid">
                 {rest.map((p) => (
-                  <JournalCard post={p} variant="large" sizes="(max-width: 760px) 100vw, 33vw" />
+                  <JournalCard post={p} />
                 ))}
               </div>
             )}
@@ -60,30 +54,67 @@ const topics = [...new Set(posts.map((p) => p.data.topic))];
 </Base>
 
 <style>
-  .jl__topics {
-    margin-top: 32px;
+  .jl-head {
+    position: relative;
+  }
+  .jl-mega .mega {
+    display: block;
+    font-size: 24vw;
+    line-height: 0.8;
+  }
+  .jl-intro {
+    display: grid;
+    grid-template-columns: 7fr 4fr;
+    gap: 24px var(--gutter);
+    align-items: end;
+    margin-top: clamp(24px, 3vw, 44px);
+  }
+  .jl-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .jl-head :global(.jl-stk) {
+    position: absolute;
+    right: 10%;
+    top: 18%;
+    width: clamp(70px, 9vw, 130px);
   }
   .jl {
     padding-top: 0;
   }
-  .jl__lead {
-    max-width: 1100px;
-    padding-bottom: clamp(48px, 6vw, 96px);
+  .jl-lead {
+    padding-bottom: clamp(36px, 4vw, 64px);
+    margin-bottom: clamp(36px, 4vw, 64px);
     border-bottom: 1px solid var(--line);
-    margin-bottom: clamp(48px, 6vw, 96px);
   }
-  .jl__grid {
+  .jl-lead :global(.jc__link) {
+    grid-template-columns: 7fr 5fr;
+    align-items: end;
+    gap: var(--gutter);
+  }
+  .jl-lead :global(.jc__title) {
+    font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+  }
+  .jl-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 64px var(--gutter);
+    gap: 56px var(--gutter);
   }
   @media (max-width: 1000px) {
-    .jl__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .jl-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 900px) {
+    .jl-intro,
+    .jl-lead :global(.jc__link) {
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 640px) {
-    .jl__grid {
+    .jl-grid {
       grid-template-columns: 1fr;
     }
   }

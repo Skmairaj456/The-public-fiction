@@ -16,7 +16,7 @@ if (!reduceMotion) {
 /* ---------------------------------------------------------------------------
    Scroll-triggered reveals
    --------------------------------------------------------------------------- */
-const revealSelector = '[data-reveal], [data-split], [data-reveal-img], [data-draw]';
+const revealSelector = '[data-reveal], [data-split], [data-reveal-img], [data-draw], [data-pop]';
 const revealTargets = document.querySelectorAll<HTMLElement>(revealSelector);
 
 if (reduceMotion || !('IntersectionObserver' in window)) {
@@ -50,6 +50,36 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
       pending.set(watched, [el]);
       io.observe(watched);
     }
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   Fit-to-width words: data-fit scales an element's type to fill its parent
+   --------------------------------------------------------------------------- */
+const fitEls = Array.from(document.querySelectorAll<HTMLElement>('[data-fit]'));
+function fitText() {
+  for (const el of fitEls) {
+    const parent = el.parentElement;
+    if (!parent) continue;
+    el.style.fontSize = '100px';
+    el.style.display = 'inline-block';
+    const width = el.getBoundingClientRect().width;
+    const target = parent.clientWidth;
+    // Optional cap: data-fit-vh="34" keeps the type under 34% of the viewport height.
+    const capVh = Number(el.dataset.fitVh) || 0;
+    let size = width > 0 ? (100 * target) / width : 100;
+    if (capVh) size = Math.min(size, (window.innerHeight * capVh) / 100 / 0.8);
+    el.style.fontSize = `${size}px`;
+    el.style.display = 'block';
+  }
+}
+if (fitEls.length) {
+  fitText();
+  document.fonts?.ready.then(fitText);
+  let ft = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(ft);
+    ft = window.setTimeout(fitText, 120);
   });
 }
 

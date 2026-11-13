@@ -1,0 +1,124 @@
+---
+import { faqs } from '@/data/studio';
+import SectionHead from './SectionHead.astro';
+import SplitHeading from './SplitHeading.astro';
+import Sticker from './Sticker.astro';
+import Button from './Button.astro';
+---
+
+<section class="section faq" aria-labelledby="faq-title">
+  <div class="wrap">
+    <SectionHead label="FAQ" aside="Clear answers" />
+    <div class="faq__grid">
+      <div class="faq__intro">
+        <SplitHeading id="faq-title" class="stack faq__title" lines={['~Questions?', '>Good.']} />
+        <p class="muted" data-reveal>The things people usually ask before we start. Anything else — just ask.</p>
+        <div data-reveal><Button href="/contact/" variant="ghost">Ask us anything</Button></div>
+        <Sticker name="bubble" class="faq__stk" data-pop />
+      </div>
+      <div class="faq__list">
+        {
+          faqs.map((f, i) => (
+            <details class="faq__item" data-reveal style={`--d:${i * 60}`} open={i === 0}>
+              <summary>
+                <span>{f.q}</span>
+                <span class="faq__icon" aria-hidden="true" />
+              </summary>
+              <p class="muted">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: clamp(32px, 5vw, 96px);
+    align-items: start;
+  }
+  .faq__intro {
+    position: relative;
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+  .faq__intro :global(.faq__stk) {
+    width: clamp(90px, 10vw, 150px);
+    margin-top: 12px;
+    --r: -8deg;
+  }
+  .faq__list {
+    display: grid;
+    gap: 10px;
+  }
+  .faq__item {
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: background 0.3s;
+  }
+  .faq__item[open] {
+    background: var(--white);
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 22px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__icon {
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--lime);
+  }
+  .faq__icon::before,
+  .faq__icon::after {
+    content: '';
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--ink);
+    transition: transform 0.4s var(--ease);
+  }
+  .faq__icon::after {
+    transform: rotate(90deg);
+  }
+  .faq__item[open] .faq__icon::after {
+    transform: rotate(0);
+  }
+  .faq__item p {
+    padding: 0 22px 22px;
+    max-width: 62ch;
+  }
+  @media (max-width: 900px) {
+    .faq__grid {
+      grid-template-columns: 1fr;
+    }
+    .faq__intro :global(.faq__stk) {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 84px;
+      margin: 0;
+    }
+  }
+</style>

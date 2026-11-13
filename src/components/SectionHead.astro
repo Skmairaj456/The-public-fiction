@@ -1,15 +1,26 @@
 ---
+/** Section label row: "✱ Label" on the left, an optional note on the right. */
+import Asterisk from './Asterisk.astro';
+
 interface Props {
-  number: string;
   label: string;
   aside?: string;
+  /** Kept for compatibility with older call sites; not displayed. */
+  number?: string;
 }
-const { number, label, aside } = Astro.props;
+const { label, aside } = Astro.props;
 ---
 
-<div class="sh label" data-reveal>
-  <span class="sh__num">({number})</span>
-  <span>{label}</span>
-  <span class="sh__fill"></span>
-  {aside && <span class="label--muted">{aside}</span>}
+<div class="sh" data-reveal>
+  <span class="label"><Asterisk class="ast ast--lime-on-dark" />{label}</span>
+  {aside && <span class="label label--muted">{aside}</span>}
 </div>
+
+<style>
+  .sh :global(.ast--lime-on-dark) {
+    color: var(--fg);
+  }
+  :global(.theme-dark) .sh :global(.ast--lime-on-dark) {
+    color: var(--lime);
+  }
+</style>

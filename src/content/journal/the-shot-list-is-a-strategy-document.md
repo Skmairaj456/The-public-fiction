@@ -3,7 +3,7 @@ title: The shot list is a strategy document
 excerpt: Most shoots go wrong long before anyone picks up a camera. Notes on planning production so the idea survives the day.
 date: 2026-09-12
 topic: Production
-cover: ../../assets/img/clapper.jpg
+cover: ../../assets/img/clapper-yellow.jpg
 coverAlt: A film clapperboard held up on location
 ---
 

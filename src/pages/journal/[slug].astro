@@ -4,6 +4,7 @@ import { render } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import JournalCard from '@/components/JournalCard.astro';
 import Button from '@/components/Button.astro';
+import Arrow from '@/components/Arrow.astro';
 import { site } from '@/config/site';
 import { getPosts, formatDate, readingTime, type Post } from '@/lib/content';
 
@@ -43,14 +44,14 @@ const schema = [
 
 <Base title={data.title} description={data.excerpt} image={og.src} imageAlt={data.coverAlt} type="article" schema={schema}>
   <article class="ja">
-    <header class="page-intro ja__head">
-      <div class="wrap">
-        <div class="page-intro__meta label">
-          <a class="ulink" href="/journal/">← Journal</a>
-          <span class="label--muted">{data.topic}</span>
+    <header class="page-intro">
+      <div class="wrap ja__head">
+        <div class="page-intro__meta">
+          <a class="arrow-link ja__back" href="/journal/"><span class="btn__icon" aria-hidden="true"><Arrow class="ja__back-arrow" /></span>Journal</a>
+          <span class="chip chip--lime">{data.topic}</span>
         </div>
-        <h1 class="ja__title" data-reveal>{data.title}</h1>
-        <p class="ja__meta label label--muted" data-reveal style="--d:120">
+        <h1 class="ja__title h-xl" data-reveal>{data.title}</h1>
+        <p class="ja__meta" data-reveal style="--d:120">
           <time datetime={data.date.toISOString()}>{formatDate(data.date)}</time>
           <span>{readingTime(post.body)} min read</span>
           <span>By {data.author}</span>
@@ -69,23 +70,23 @@ const schema = [
       <div class="prose">
         <Content />
       </div>
-      <div class="ja__end">
-        <p class="label label--muted">Have a project this made you think about?</p>
-        <Button href="/contact/">Start a conversation</Button>
+      <div class="ja__end card">
+        <p class="t-title">Have a project this made you think about?</p>
+        <Button href="/contact/" variant="lime">Start a conversation</Button>
       </div>
     </div>
   </article>
 
   {
     more.length > 0 && (
-      <section class="section theme-paper-2" aria-labelledby="more-title">
+      <section class="section theme-white" aria-labelledby="more-title">
         <div class="wrap">
-          <h2 id="more-title" class="display-m ja__more-title">
-            Keep <span class="serif">reading</span>
+          <h2 id="more-title" class="h-l ja__more-title">
+            Keep <span class="mark">reading</span>
           </h2>
           <div class="ja__more">
             {more.map((p) => (
-              <JournalCard post={p} variant="large" sizes="(max-width: 760px) 100vw, 50vw" />
+              <JournalCard post={p} sizes="(max-width: 760px) 100vw, 50vw" />
             ))}
           </div>
         </div>
@@ -95,38 +96,41 @@ const schema = [
 </Base>
 
 <style>
+  .ja__back :global(.ja__back-arrow) {
+    transform: rotate(180deg);
+  }
+  .ja__back:hover .btn__icon {
+    transform: none;
+  }
   .ja__title {
-    font-family: var(--f-display);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: -0.04em;
-    line-height: 0.92;
-    font-size: clamp(2.3rem, 6.2vw, 6.6rem);
-    max-width: 16ch;
+    max-width: 18ch;
   }
   .ja__meta {
-    margin-top: 28px;
+    margin-top: 24px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px 24px;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 14px;
   }
   .ja__cover .media {
     aspect-ratio: 21 / 9;
   }
   .ja__body {
     max-width: 860px;
-    padding-block: clamp(48px, 6vw, 100px) var(--section);
+    padding-block: clamp(36px, 4vw, 64px) var(--section);
   }
   .ja__excerpt {
-    font-family: var(--f-serif);
-    font-size: clamp(1.6rem, 2.6vw, 2.5rem);
-    line-height: 1.15;
-    margin-bottom: clamp(32px, 4vw, 56px);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    margin-bottom: clamp(28px, 3vw, 48px);
   }
   .ja__end {
-    margin-top: clamp(48px, 6vw, 80px);
-    padding-top: 28px;
-    border-top: 1px solid var(--line);
+    margin-top: clamp(40px, 5vw, 72px);
+    padding: 24px 28px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -134,12 +138,12 @@ const schema = [
     gap: 20px;
   }
   .ja__more-title {
-    margin-bottom: clamp(32px, 4vw, 64px);
+    margin-bottom: clamp(28px, 3vw, 48px);
   }
   .ja__more {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 56px var(--gutter);
+    gap: 48px var(--gutter);
   }
   @media (max-width: 760px) {
     .ja__cover .media {

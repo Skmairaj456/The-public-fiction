@@ -139,10 +139,9 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
         We use your details only to reply to this enquiry. See our <a class="ulink" href="/privacy/">privacy policy</a>.
         {configuredProvider === 'none' && <> Sending opens your email app with your enquiry ready to go.</>}
       </p>
-      <button type="submit" class="btn cf__submit" data-submit>
+      <button type="submit" class="btn btn--lime cf__submit" data-submit>
         <span data-submit-label>{configuredProvider === 'none' ? 'Send via email' : 'Send enquiry'}</span>
-        <span class="cf__spinner" aria-hidden="true"></span>
-        <Arrow />
+        <span class="btn__icon" aria-hidden="true"><span class="cf__spinner"></span><Arrow class="cf__arrow" /></span>
       </button>
     </div>
 
@@ -150,13 +149,13 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
   </form>
 
   <div class="cf__done" hidden data-done tabindex="-1">
-    <p class="label cf__done-label"><span class="cf__tick" aria-hidden="true"></span>Enquiry received</p>
-    <p class="display-m">Thank you. <span class="serif">Now we think.</span></p>
+    <p class="chip chip--lime cf__done-label">✓ Enquiry received</p>
+    <p class="mega mega--s">Thank you. Now we <span class="lime">think.</span></p>
     <p class="lede muted">
       Your message is with us. We read every enquiry properly and will reply to <strong data-done-email></strong> as
       soon as we can.
     </p>
-    <button type="button" class="btn btn--line" data-reset>Send another enquiry</button>
+    <button type="button" class="btn btn--ghost btn--plain" data-reset>Send another enquiry</button>
   </div>
 </div>
 
@@ -227,8 +226,8 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
     box-shadow: 0 1px 0 0 var(--fg);
   }
   .cf [aria-invalid='true'] {
-    border-bottom-color: var(--signal) !important;
-    box-shadow: 0 1px 0 0 var(--signal) !important;
+    border-bottom-color: var(--error) !important;
+    box-shadow: 0 1px 0 0 var(--error) !important;
   }
   .cf__select {
     position: relative;
@@ -287,21 +286,22 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
     border-color: var(--fg);
   }
   .cf__chip input:checked + span {
-    background: var(--fg);
-    color: var(--bg);
-    border-color: var(--fg);
+    background: var(--lime);
+    color: var(--ink);
+    border-color: var(--lime);
+    font-weight: 700;
   }
   .cf__chip input:focus-visible + span {
-    outline: 2px solid var(--signal);
+    outline: 2px solid var(--fg);
     outline-offset: 2px;
   }
   .cf__set[aria-invalid='true'] .cf__chip span {
-    border-color: var(--signal);
+    border-color: var(--error);
   }
 
   .cf__err {
     min-height: 0;
-    color: var(--signal);
+    color: var(--error);
     font-size: 0.88rem;
     font-weight: 500;
   }
@@ -323,13 +323,13 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
   }
   .cf__submit {
     min-height: 60px;
-    padding: 0 32px;
+    padding-left: 30px;
   }
   .cf__spinner {
     display: none;
     width: 14px;
     height: 14px;
-    border: 1.5px solid currentColor;
+    border: 2px solid currentColor;
     border-right-color: transparent;
     border-radius: 50%;
     animation: cf-spin 0.8s linear infinite;
@@ -337,7 +337,7 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
   .cf__submit[aria-busy='true'] .cf__spinner {
     display: inline-block;
   }
-  .cf__submit[aria-busy='true'] :global(.btn__arrow) {
+  .cf__submit[aria-busy='true'] :global(.cf__arrow) {
     display: none;
   }
   @keyframes cf-spin {
@@ -351,8 +351,9 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
   }
   .cf__status {
     padding: 16px 18px;
-    border-left: 2px solid var(--signal);
-    background: color-mix(in srgb, var(--signal) 9%, transparent);
+    border-radius: 12px;
+    border-left: 3px solid var(--error);
+    background: color-mix(in srgb, var(--error) 12%, transparent);
   }
   .cf__status[data-tone='info'] {
     border-left-color: var(--fg);
@@ -371,16 +372,7 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
     outline: none;
   }
   .cf__done-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--signal);
-  }
-  .cf__tick {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--signal);
+    font-weight: 800;
   }
 
   @media (max-width: 680px) {

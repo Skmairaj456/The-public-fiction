@@ -1,0 +1,378 @@
+---
+/**
+ * Falling, throwable doodles. When the section scrolls into view, stickers and
+ * word pills drop in under real physics (matter-js) and pile up; visitors can
+ * grab, drag and fling them. Without JS or with reduced motion, the same items
+ * sit in a fixed, hand-placed pile.
+ */
+import Sticker from './Sticker.astro';
+import type { StickerName } from '@/lib/stickers';
+
+type Item =
+  | { kind: 'sticker'; name: StickerName; k: number; x: number; y: number; r: number }
+  | { kind: 'pill'; text: string; tone: 'ink' | 'white' | 'outline'; x: number; y: number; r: number };
+
+// x / y are the static-pile fallback positions (% of the stage).
+const items: Item[] = [
+  { kind: 'sticker', name: 'smiley', k: 1.15, x: 9, y: 84, r: -8 },
+  { kind: 'pill', text: 'Branding', tone: 'ink', x: 24, y: 90, r: 4 },
+  { kind: 'sticker', name: 'megaphone', k: 1.2, x: 38, y: 82, r: 12 },
+  { kind: 'pill', text: 'Big ideas', tone: 'white', x: 52, y: 91, r: -6 },
+  { kind: 'sticker', name: 'camera', k: 1.1, x: 64, y: 83, r: -14 },
+  { kind: 'pill', text: 'Film', tone: 'outline', x: 77, y: 90, r: 9 },
+  { kind: 'sticker', name: 'star', k: 1.05, x: 90, y: 84, r: 16 },
+  { kind: 'sticker', name: 'heart', k: 0.95, x: 17, y: 70, r: 10 },
+  { kind: 'pill', text: 'Campaigns', tone: 'white', x: 31, y: 74, r: -12 },
+  { kind: 'sticker', name: 'bulb', k: 1, x: 47, y: 71, r: -4 },
+  { kind: 'pill', text: 'Zero boring', tone: 'ink', x: 61, y: 74, r: 7 },
+  { kind: 'sticker', name: 'clapper', k: 1.05, x: 75, y: 71, r: 18 },
+  { kind: 'sticker', name: 'eye', k: 0.95, x: 88, y: 69, r: -10 },
+  { kind: 'pill', text: 'Events', tone: 'outline', x: 40, y: 60, r: 14 },
+  { kind: 'sticker', name: 'rocket', k: 1, x: 56, y: 58, r: 22 },
+  { kind: 'pill', text: 'Photography', tone: 'ink', x: 70, y: 60, r: -5 },
+  { kind: 'sticker', name: 'bolt', k: 0.9, x: 25, y: 58, r: -18 },
+  { kind: 'pill', text: 'Digital', tone: 'white', x: 83, y: 57, r: 11 },
+];
+---
+
+<section class="pg theme-lime" aria-labelledby="pg-title" data-playground>
+  <div class="pg__copy wrap">
+    <p class="label label--caps pg__label">✱ Ideas everywhere</p>
+    <h2 id="pg-title" class="mega pg__title">Go on,<br />grab one.</h2>
+    <p class="pg__hint label label--caps" data-pg-hint>Drag, throw, repeat</p>
+  </div>
+
+  <div class="pg__stage" data-pg-stage aria-hidden="true">
+    {
+      items.map((it) =>
+        it.kind === 'sticker' ? (
+          <div
+            class="pg__item pg__item--sticker"
+            data-shape="circle"
+            style={`--fx:${it.x}%;--fy:${it.y}%;--fr:${it.r}deg;--k:${it.k}`}
+          >
+            <Sticker name={it.name} />
+          </div>
+        ) : (
+          <div class={`pg__item pg__pill pg__pill--${it.tone}`} data-shape="pill" style={`--fx:${it.x}%;--fy:${it.y}%;--fr:${it.r}deg`}>
+            {it.text}
+          </div>
+        ),
+      )
+    }
+  </div>
+
+  <button type="button" class="pg__reset btn btn--plain" data-pg-reset hidden>Drop them again</button>
+</section>
+
+<style>
+  .pg {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100svh;
+    max-height: 1100px;
+    background: var(--lime);
+    color: var(--ink);
+    --u: clamp(62px, 8.4vw, 150px);
+  }
+  .pg__copy {
+    position: relative;
+    z-index: 0;
+    padding-top: clamp(70px, 9vw, 130px);
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+  }
+  .pg__label {
+    justify-content: center;
+  }
+  .pg__title {
+    margin-top: 18px;
+    font-size: clamp(4rem, 13vw, 15rem);
+    line-height: 0.84;
+  }
+  .pg__hint {
+    margin-top: 22px;
+    justify-content: center;
+    opacity: 0.7;
+  }
+  .pg__stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .pg__item {
+    position: absolute;
+    left: var(--fx);
+    top: var(--fy);
+    transform: translate(-50%, -50%) rotate(var(--fr));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pg__item--sticker {
+    width: calc(var(--u) * var(--k));
+    aspect-ratio: 1;
+  }
+  .pg__item--sticker :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 0 rgba(14, 15, 17, 0.18));
+  }
+  .pg__pill {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.55em 1.05em 0.5em;
+    border-radius: 999px;
+    border: 3px solid var(--ink);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    font-size: calc(var(--u) * 0.24);
+    line-height: 1;
+    box-shadow: 0 6px 0 rgba(14, 15, 17, 0.18);
+  }
+  .pg__pill--ink {
+    background: var(--ink);
+    color: var(--lime);
+  }
+  .pg__pill--white {
+    background: #fff;
+    color: var(--ink);
+  }
+  .pg__pill--outline {
+    background: var(--lime);
+    color: var(--ink);
+  }
+
+  /* Live physics: JS owns every item's transform */
+  .pg.is-live .pg__item {
+    left: 0;
+    top: 0;
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+    visibility: hidden;
+  }
+  .pg.is-live .pg__item.is-placed {
+    visibility: visible;
+  }
+  .pg.is-live .pg__item.is-grabbed {
+    cursor: grabbing;
+    z-index: 2;
+  }
+  .pg__reset {
+    position: absolute;
+    z-index: 3;
+    right: var(--gutter);
+    top: clamp(20px, 3vw, 40px);
+  }
+  :global(html:not(.js)) .pg__hint,
+  :global(html.reduce-motion) .pg__hint {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .pg {
+      min-height: 640px;
+      --u: 58px;
+    }
+    .pg__reset {
+      top: 16px;
+      min-height: 40px;
+      padding: 0 16px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<script>
+  import Matter from 'matter-js';
+
+  const { Engine, Bodies, Body, Composite, Constraint } = Matter;
+  const root = document.documentElement;
+
+  document.querySelectorAll<HTMLElement>('[data-playground]').forEach((section) => {
+    if (root.classList.contains('reduce-motion')) return;
+
+    const stage = section.querySelector<HTMLElement>('[data-pg-stage]')!;
+    const resetBtn = section.querySelector<HTMLButtonElement>('[data-pg-reset]')!;
+    const els = Array.from(stage.querySelectorAll<HTMLElement>('.pg__item'));
+
+    const engine = Engine.create({ gravity: { x: 0, y: 1.1 } });
+    const world = engine.world;
+    type Thing = { el: HTMLElement; body: Matter.Body; w: number; h: number };
+    let things: Thing[] = [];
+    let walls: Matter.Body[] = [];
+    let W = 0;
+    let H = 0;
+    let started = false;
+    let visible = false;
+    let raf = 0;
+    let dropTimers: number[] = [];
+
+    const buildWalls = () => {
+      Composite.remove(world, walls);
+      const t = 400;
+      walls = [
+        Bodies.rectangle(W / 2, H + t / 2, W * 3, t, { isStatic: true }),
+        Bodies.rectangle(-t / 2, 0, t, H * 4, { isStatic: true }),
+        Bodies.rectangle(W + t / 2, 0, t, H * 4, { isStatic: true }),
+      ];
+      Composite.add(world, walls);
+    };
+
+    const makeBody = (el: HTMLElement, x: number, y: number) => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const opts = { restitution: 0.32, friction: 0.4, frictionAir: 0.012, density: 0.0015 };
+      const body =
+        el.dataset.shape === 'circle'
+          ? Bodies.circle(x, y, w * 0.44, opts)
+          : Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: h / 2 - 1 } });
+      // Gentle tilt and spin so most words still land the right way up.
+      Body.setAngle(body, (Math.random() - 0.5) * 0.9);
+      Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.04);
+      return { el, body, w, h };
+    };
+
+    const drop = () => {
+      dropTimers.forEach(clearTimeout);
+      dropTimers = [];
+      things.forEach((t) => Composite.remove(world, t.body));
+      things = [];
+      els.forEach((el) => el.classList.remove('is-placed'));
+      const order = [...els].sort(() => Math.random() - 0.5);
+      order.forEach((el, i) => {
+        dropTimers.push(
+          window.setTimeout(() => {
+            const margin = el.offsetWidth / 2 + 6;
+            const x = margin + Math.random() * Math.max(1, W - margin * 2);
+            const t = makeBody(el, x, -el.offsetHeight - Math.random() * 120);
+            things.push(t);
+            Composite.add(world, t.body);
+            el.classList.add('is-placed');
+          }, i * 110),
+        );
+      });
+    };
+
+    const render = () => {
+      for (const t of things) {
+        const { x, y } = t.body.position;
+        t.el.style.transform = `translate3d(${x - t.w / 2}px, ${y - t.h / 2}px, 0) rotate(${t.body.angle}rad)`;
+      }
+    };
+
+    let last = 0;
+    const loop = (now: number) => {
+      const dt = Math.min(1000 / 30, last ? now - last : 1000 / 60);
+      last = now;
+      Engine.update(engine, dt);
+      render();
+      raf = visible ? requestAnimationFrame(loop) : 0;
+    };
+    const run = () => {
+      if (!raf) {
+        last = 0;
+        raf = requestAnimationFrame(loop);
+      }
+    };
+
+    const measure = () => {
+      W = stage.clientWidth;
+      H = stage.clientHeight;
+      buildWalls();
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      section.classList.add('is-live');
+      resetBtn.hidden = false;
+      measure();
+      drop();
+      run();
+    };
+
+    new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        if (visible && e.intersectionRatio > 0.35) start();
+        if (visible && started) run();
+      },
+      { threshold: [0, 0.35, 0.6] },
+    ).observe(section);
+
+    // Drag and throw -------------------------------------------------------
+    let grab: { thing: Thing; c: Matter.Constraint; id: number; sx: number; sy: number; moved: boolean } | null = null;
+    const local = (e: PointerEvent) => {
+      const r = stage.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    stage.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('.pg__item');
+      const thing = el && things.find((t) => t.el === el);
+      if (!thing || grab) return;
+      e.preventDefault();
+      const p = local(e);
+      const c = Constraint.create({
+        pointA: p,
+        bodyB: thing.body,
+        pointB: { x: p.x - thing.body.position.x, y: p.y - thing.body.position.y },
+        stiffness: 0.18,
+        damping: 0.08,
+        length: 0,
+      });
+      Composite.add(world, c);
+      grab = { thing, c, id: e.pointerId, sx: e.clientX, sy: e.clientY, moved: false };
+      thing.el.classList.add('is-grabbed');
+      thing.el.setPointerCapture(e.pointerId);
+      run();
+    });
+
+    stage.addEventListener('pointermove', (e) => {
+      if (!grab || e.pointerId !== grab.id) return;
+      grab.c.pointA = local(e);
+      if (Math.abs(e.clientX - grab.sx) + Math.abs(e.clientY - grab.sy) > 6) grab.moved = true;
+    });
+
+    const release = (e: PointerEvent) => {
+      if (!grab || e.pointerId !== grab.id) return;
+      const { thing, c, moved } = grab;
+      Composite.remove(world, c);
+      thing.el.classList.remove('is-grabbed');
+      // A tap (no drag) gives the item a little hop.
+      if (!moved) {
+        Body.setVelocity(thing.body, { x: (Math.random() - 0.5) * 6, y: -14 });
+        Body.setAngularVelocity(thing.body, (Math.random() - 0.5) * 0.4);
+      }
+      grab = null;
+    };
+    stage.addEventListener('pointerup', release);
+    stage.addEventListener('pointercancel', release);
+
+    resetBtn.addEventListener('click', () => {
+      drop();
+      run();
+    });
+
+    // Keep the box the right size; nudge anything left outside back in.
+    let rt = 0;
+    addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = window.setTimeout(() => {
+        if (!started) return;
+        measure();
+        for (const t of things) {
+          const x = Math.min(Math.max(t.body.position.x, t.w / 2), W - t.w / 2);
+          const y = Math.min(t.body.position.y, H - t.h / 2);
+          Body.setPosition(t.body, { x, y });
+        }
+        run();
+      }, 150);
+    });
+  });
+</script>

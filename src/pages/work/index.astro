@@ -1,13 +1,14 @@
 ---
 import Base from '@/layouts/Base.astro';
 import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
 import ProjectCard from '@/components/ProjectCard.astro';
 import Button from '@/components/Button.astro';
+import Sticker from '@/components/Sticker.astro';
 import { getProjects } from '@/lib/content';
 
 const projects = await getProjects();
 const categories = [...new Set(projects.map((p) => p.data.category))];
-const anySamples = projects.some((p) => p.data.sample);
 
 // Two-column rhythm: wide/narrow, then narrow/wide.
 const pattern = [
@@ -18,43 +19,30 @@ const pattern = [
 ];
 ---
 
-<Base
-  title="Work"
-  description="Selected campaigns, brand identities, photography, films and event coverage by THE PUBLIC FICTION."
->
-  <section class="page-intro">
+<Base title="Work" description="Campaigns, brand identities, photography, films and event coverage by THE PUBLIC FICTION.">
+  <section class="page-intro wl__intro">
     <div class="wrap">
-      <div class="page-intro__meta label">
-        <span>(Index) Work</span>
-        <span class="label--muted">{projects.length} projects</span>
-      </div>
-      <SplitHeading as="h1" class="display-xl" lines={['Ideas, made', '*visible.*']} />
+      <SectionHead label="Selected work" aside={`${projects.length} projects`} />
+      <h1 class="wl__mega" data-split aria-label="Work">
+        <span class="lm" aria-hidden="true"><span class="mega" data-fit>Work</span></span>
+      </h1>
       <div class="page-intro__foot">
-        <p class="lede" data-reveal>
-          Campaigns, identities, shoots, films and events. Every project starts with a business problem and ends with
-          something people actually notice.
-        </p>
+        <SplitHeading as="p" class="stack wl__stack" lines={['~Ideas, made', '>visible.']} />
+        <p class="lede" data-reveal>Every project starts with a business problem and ends with something people actually notice.</p>
       </div>
-      {
-        anySamples && (
-          <p class="wl__notice label label--muted" data-reveal>
-            <span class="tag tag--sample">Sample project</span> marks demonstration work created to show our approach.
-            It is not client work.
-          </p>
-        )
-      }
+      <Sticker name="star" class="wl__stk" data-pop />
     </div>
   </section>
 
   <section class="wl" aria-label="Projects">
     <div class="wrap">
       <div class="wl__filters" role="group" aria-label="Filter projects by category" data-filters>
-        <button type="button" class="wl__filter label" aria-pressed="true" data-filter="all">
+        <button type="button" class="wl__filter" aria-pressed="true" data-filter="all">
           All <sup>{projects.length}</sup>
         </button>
         {
           categories.map((c) => (
-            <button type="button" class="wl__filter label" aria-pressed="false" data-filter={c}>
+            <button type="button" class="wl__filter" aria-pressed="false" data-filter={c}>
               {c} <sup>{projects.filter((p) => p.data.category === c).length}</sup>
             </button>
           ))
@@ -87,56 +75,78 @@ const pattern = [
     </div>
   </section>
 
-  <section class="section wl__cta">
+  <section class="section">
     <div class="wrap">
-      <SplitHeading class="display-l" lines={['Your project', 'could be *next.*']} />
-      <div data-reveal class="wl__cta-btn"><Button href="/contact/">Start a project</Button></div>
+      <div class="wl__cta theme-lime">
+        <SplitHeading class="mega mega--s" lines={['Your project', 'could be next.']} />
+        <div data-reveal><Button href="/contact/">Start a project</Button></div>
+        <Sticker name="rocket" class="wl__cta-stk" />
+      </div>
     </div>
   </section>
 </Base>
 
 <style>
-  .wl__notice {
-    margin-top: 32px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
+  .wl__intro .wrap {
+    position: relative;
+  }
+  .wl__mega .mega {
+    display: block;
+    font-size: 40vw;
+    line-height: 0.8;
+  }
+  .wl__intro :global(.page-intro__foot > .wl__stack) {
+    grid-column: 1 / span 7;
+  }
+  .wl__intro :global(.page-intro__foot > .lede) {
+    grid-column: 9 / span 4;
+  }
+  @media (max-width: 900px) {
+    .wl__intro :global(.page-intro__foot > .wl__stack),
+    .wl__intro :global(.page-intro__foot > .lede) {
+      grid-column: 1 / -1;
+    }
+  }
+  .wl__intro :global(.wl__stk) {
+    position: absolute;
+    right: 8%;
+    top: 22%;
+    width: clamp(70px, 10vw, 150px);
+    --r: 14deg;
   }
   .wl__filters {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding-bottom: clamp(32px, 4vw, 56px);
+    padding-bottom: clamp(28px, 3vw, 44px);
   }
   .wl__filter {
-    min-height: 40px;
-    padding: 0 16px;
+    min-height: 42px;
+    padding: 0 18px;
     border-radius: 999px;
     border: 1px solid var(--line-strong);
+    font-size: 14px;
+    font-weight: 700;
     transition:
       background 0.3s,
       color 0.3s,
       border-color 0.3s;
   }
   .wl__filter sup {
-    font-size: 9px;
+    font-size: 10px;
     margin-left: 2px;
-    color: var(--muted);
+    opacity: 0.6;
   }
   .wl__filter:hover {
-    border-color: var(--fg);
+    border-color: var(--ink);
   }
   .wl__filter[aria-pressed='true'] {
     background: var(--ink);
-    color: var(--paper);
+    color: var(--lime);
     border-color: var(--ink);
   }
-  .wl__filter[aria-pressed='true'] sup {
-    color: var(--stone-light);
-  }
   .wl__grid {
-    row-gap: clamp(56px, 7vw, 120px);
+    row-gap: clamp(44px, 5vw, 84px);
     align-items: start;
   }
   .wl__grid :global(.wl--wide) {
@@ -147,30 +157,49 @@ const pattern = [
   }
   .wl__grid :global(.wl__item:nth-child(4n + 2)),
   .wl__grid :global(.wl__item:nth-child(4n + 3)) {
-    margin-top: clamp(0px, 8vw, 140px);
+    margin-top: clamp(0px, 5vw, 88px);
   }
-  .wl__grid :global(.wl__item[hidden]) {
-    display: none;
-  }
-  /* When filtered, drop the staggered rhythm so results read cleanly */
   .wl__grid[data-filtered='true'] :global(.wl__item) {
     grid-column: span 6;
     margin-top: 0;
   }
-  .wl__cta .wrap {
+  /* A lone result fills the row instead of leaving half the page empty. */
+  .wl__grid[data-filtered='true'][data-count='1'] :global(.wl__item) {
+    grid-column: 1 / -1;
+  }
+  .wl__grid[data-filtered='true'][data-count='1'] :global(.pc__media) {
+    aspect-ratio: 21 / 9 !important;
+  }
+  .wl__cta {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: end;
     justify-content: space-between;
     gap: 32px;
-    border-top: 1px solid var(--line);
-    padding-top: clamp(48px, 6vw, 96px);
+    padding: clamp(32px, 5vw, 80px);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+  }
+  .wl__cta :global(.wl__cta-stk) {
+    position: absolute;
+    right: 28%;
+    top: -10px;
+    width: clamp(70px, 9vw, 130px);
+    --r: 24deg;
+    animation: bob 4s ease-in-out infinite;
   }
   @media (max-width: 760px) {
+    .wl__grid[data-filtered='true'][data-count='1'] :global(.pc__media) {
+      aspect-ratio: 4 / 3 !important;
+    }
     .wl__grid :global(.wl__item),
     .wl__grid[data-filtered='true'] :global(.wl__item) {
       grid-column: 1 / -1;
       margin-top: 0 !important;
+    }
+    .wl__cta :global(.wl__cta-stk) {
+      right: 6%;
     }
   }
 </style>
@@ -197,6 +226,7 @@ const pattern = [
       });
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
       grid.dataset.filtered = String(filter !== 'all');
+      grid.dataset.count = String(shown);
       if (empty) empty.hidden = shown > 0;
       if (statusEl) statusEl.textContent = `Showing ${shown} ${shown === 1 ? 'project' : 'projects'}${filter === 'all' ? '' : ` in ${filter}`}.`;
 

@@ -1,77 +1,73 @@
 ---
 import { site, socialLinks } from '@/config/site';
 import SectionHead from './SectionHead.astro';
-import SplitHeading from './SplitHeading.astro';
 import ContactForm from './ContactForm.astro';
+import Sticker from './Sticker.astro';
 
 interface Props {
   number?: string;
   /** Use the h1 level when this is the page's main heading. */
   headingLevel?: 'h1' | 'h2';
 }
-const { number = '09', headingLevel = 'h2' } = Astro.props;
+const { headingLevel: H = 'h2' } = Astro.props;
 const socials = socialLinks();
 ---
 
-<section class="section contact theme-ink" id="contact" aria-labelledby="contact-title">
+<section class="section contact theme-dark" id="contact" aria-labelledby="contact-title">
   <div class="wrap">
-    <SectionHead number={number} label="Start a project" />
-    <SplitHeading
-      id="contact-title"
-      as={headingLevel}
-      class="display-xl contact__title"
-      lines={["Let's make", 'something *worth*', 'talking about.']}
-    />
+    <SectionHead label="Start a project" aside="Have an idea? Good." />
+    <H id="contact-title" class="contact__title" data-split aria-label="Let's talk! Let's make something worth talking about.">
+      <span class="lm" aria-hidden="true"><span class="mega" style="--i:0">Let’s <span class="lime">talk!</span></span></span>
+      <span class="lm" aria-hidden="true"><span class="h-m contact__sub" style="--i:1">Let’s make something worth talking about.</span></span>
+    </H>
+    <Sticker name="megaphone" class="contact__stk" data-pop />
 
-    <div class="grid contact__body">
+    <div class="contact__body">
       <aside class="contact__aside" data-reveal>
-        <p class="lede">
-          Have a brand to build, a campaign to launch or an idea that deserves to exist? Let’s talk.
-        </p>
+        <p class="lede">Have a brand to build, a campaign to launch or an idea that deserves to exist? Let’s talk.</p>
 
-        <dl class="contact__details">
-          <div>
-            <dt class="label label--muted">Email</dt>
-            <dd><a class="ulink contact__email" href={`mailto:${site.contact.email}`}>{site.contact.email}</a></dd>
-          </div>
-          {
-            site.contact.phone && (
-              <div>
-                <dt class="label label--muted">Phone</dt>
-                <dd>
-                  <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
-                </dd>
-              </div>
-            )
-          }
-          {
-            site.contact.location && (
-              <div>
-                <dt class="label label--muted">Studio</dt>
-                <dd>{site.contact.location}</dd>
-              </div>
-            )
-          }
-          {
-            socials.length > 0 && (
-              <div>
-                <dt class="label label--muted">Elsewhere</dt>
-                <dd class="contact__social">
-                  {socials.map((s) => (
-                    <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
-                      {s.label}
-                    </a>
-                  ))}
-                </dd>
-              </div>
-            )
-          }
-        </dl>
+        <a class="contact__card contact__card--lime" href={`mailto:${site.contact.email}`}>
+          <span class="label label--caps">Email us</span>
+          <span class="contact__email">{site.contact.email}</span>
+        </a>
+
+        {
+          (site.contact.phone || site.contact.location || socials.length > 0) && (
+            <dl class="contact__card">
+              {site.contact.phone && (
+                <div>
+                  <dt class="label label--caps label--muted">Phone</dt>
+                  <dd>
+                    <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
+                  </dd>
+                </div>
+              )}
+              {site.contact.location && (
+                <div>
+                  <dt class="label label--caps label--muted">Studio</dt>
+                  <dd>{site.contact.location}</dd>
+                </div>
+              )}
+              {socials.length > 0 && (
+                <div>
+                  <dt class="label label--caps label--muted">Elsewhere</dt>
+                  <dd class="contact__social">
+                    {socials.map((s) => (
+                      <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
+                        {s.label}
+                      </a>
+                    ))}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )
+        }
 
         <ol class="contact__next">
-          <li><span class="label">01</span> We read your brief and reply personally.</li>
-          <li><span class="label">02</span> A short call to understand the ambition.</li>
-          <li><span class="label">03</span> A clear proposal: approach, timeline, cost.</li>
+          <li><span>01</span> We read your brief and reply personally.</li>
+          <li><span>02</span> A short call to understand the ambition.</li>
+          <li><span>03</span> A clear proposal: approach, timeline, cost.</li>
         </ol>
       </aside>
 
@@ -83,56 +79,102 @@ const socials = socialLinks();
 </section>
 
 <style>
-  .contact__title {
-    margin-bottom: clamp(48px, 7vw, 120px);
+  .contact .wrap {
+    position: relative;
+  }
+  .contact__title .mega {
+    display: block;
+    white-space: normal;
+  }
+  .contact__sub {
+    display: block;
+    margin-top: 0.4em;
+    text-transform: none;
+    letter-spacing: -0.04em;
+  }
+  .contact :global(.contact__stk) {
+    position: absolute;
+    right: calc(var(--gutter) + 2%);
+    top: 90px;
+    width: clamp(90px, 13vw, 190px);
+    --r: -12deg;
+  }
+  :global(html.js:not(.reduce-motion)) .contact :global(.contact__stk.is-in) {
+    animation: bob 4.8s ease-in-out infinite;
   }
   .contact__body {
-    row-gap: 64px;
+    margin-top: clamp(40px, 5vw, 80px);
+    display: grid;
+    grid-template-columns: 4fr 7fr;
+    gap: clamp(32px, 4vw, 72px);
     align-items: start;
   }
   .contact__aside {
-    grid-column: 1 / span 4;
     display: grid;
-    gap: 40px;
+    gap: 18px;
   }
-  .contact__form {
-    grid-column: 6 / span 7;
-  }
-  .contact__details {
+  .contact__card {
     display: grid;
-    gap: 20px;
+    gap: 14px;
+    padding: 22px 24px;
+    border-radius: var(--radius);
+    background: var(--card);
   }
-  .contact__details dd {
-    margin-top: 6px;
-    font-size: 1.1rem;
+  .contact__card dd {
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .contact__card--lime {
+    background: var(--lime);
+    color: var(--ink);
+    gap: 6px;
+    transition: transform 0.45s var(--spring);
+  }
+  .contact__card--lime:hover {
+    transform: rotate(-1.5deg) scale(1.02);
   }
   .contact__email {
-    font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+    font-weight: 800;
+    font-size: clamp(1.15rem, 1.6vw, 1.6rem);
+    letter-spacing: -0.03em;
     word-break: break-word;
   }
   .contact__social {
     display: flex;
-    gap: 20px;
+    gap: 18px;
   }
   .contact__next {
     display: grid;
     gap: 12px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
+    margin-top: 10px;
     color: var(--muted);
   }
   .contact__next li {
     display: flex;
     gap: 14px;
   }
-  .contact__next .label {
-    color: var(--signal);
-    padding-top: 0.25em;
+  .contact__next span {
+    color: var(--lime);
+    font-weight: 800;
+    font-size: 13px;
+    padding-top: 0.2em;
+  }
+  .contact__form {
+    padding: clamp(22px, 3vw, 44px);
+    border-radius: var(--radius-l);
+    background: var(--char);
   }
   @media (max-width: 1000px) {
-    .contact__aside,
-    .contact__form {
-      grid-column: 1 / -1;
+    .contact__body {
+      grid-template-columns: 1fr;
+    }
+    .contact :global(.contact__stk) {
+      top: 40px;
+    }
+  }
+  @media (max-width: 640px) {
+    .contact :global(.contact__stk) {
+      display: none;
     }
   }
 </style>

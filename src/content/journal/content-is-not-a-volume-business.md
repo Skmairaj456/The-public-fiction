@@ -3,8 +3,8 @@ title: Content is not a volume business
 excerpt: Posting more is rarely the answer. On series, formats and making social content people actually look forward to.
 date: 2026-07-30
 topic: Marketing
-cover: ../../assets/img/denim.jpg
-coverAlt: A smiling woman in a denim jacket against a blue wall
+cover: ../../assets/img/filming-red.jpg
+coverAlt: A camera operator checking the monitor on a cinema camera under red light
 ---
 
 At some point, a lot of brands decided that the solution to social media was *more*. More posts, more formats, more trends to jump on. The result is often a feed that is busy, inconsistent and easy to ignore.

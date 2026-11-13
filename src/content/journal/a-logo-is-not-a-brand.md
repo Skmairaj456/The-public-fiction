@@ -3,8 +3,8 @@ title: A logo is not a brand (but it's a very good place to hide)
 excerpt: Why the most expensive part of a rebrand is usually the bit nobody asked about — and why the logo is the last thing we design.
 date: 2026-10-02
 topic: Branding
-cover: ../../assets/img/swatches.jpg
-coverAlt: Colour swatches and printed identity studies on a desk
+cover: ../../assets/img/logo-sketches.jpg
+coverAlt: Pages of hand-drawn logo sketches scattered across a wooden desk in warm light
 ---
 
 Every few months someone asks us for "a new logo". Almost every time, what they actually want is to be understood.

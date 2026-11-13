@@ -1,7 +1,8 @@
 ---
 import { nav, site, socialLinks } from '@/config/site';
-import Wordmark from './Wordmark.astro';
+import Logo from './Logo.astro';
 import Arrow from './Arrow.astro';
+import Sticker from './Sticker.astro';
 
 const path = Astro.url.pathname;
 const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
@@ -11,7 +12,7 @@ const socials = socialLinks();
 <header class="hdr" data-header>
   <div class="wrap hdr__in">
     <a class="hdr__logo" href="/" aria-label={`${site.name} — home`}>
-      <Wordmark />
+      <Logo />
     </a>
 
     <nav class="hdr__nav" aria-label="Primary">
@@ -19,7 +20,7 @@ const socials = socialLinks();
         {
           nav.map((item) => (
             <li>
-              <a class="ulink label" href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
                 {item.label}
               </a>
             </li>
@@ -28,33 +29,31 @@ const socials = socialLinks();
       </ul>
     </nav>
 
-    <a class="btn hdr__cta" href="/contact/">
+    <a class="btn btn--lime hdr__cta" href="/contact/">
       <span>Start a project</span>
-      <Arrow />
+      <span class="btn__icon" aria-hidden="true"><Arrow class="" /></span>
     </a>
 
-    <button class="hdr__burger label" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-open>
-      <span class="hdr__burger-lines" aria-hidden="true"><i></i><i></i></span>
-      <span>Menu</span>
+    <button class="hdr__burger" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu" data-menu-open>
+      <span aria-hidden="true"><i></i><i></i></span>
     </button>
   </div>
 </header>
 
-<div class="menu theme-ink" id="site-menu" role="dialog" aria-modal="true" aria-label="Site menu" hidden data-menu>
+<div class="menu theme-dark" id="site-menu" role="dialog" aria-modal="true" aria-label="Site menu" hidden data-menu>
   <div class="wrap menu__top">
-    <a class="hdr__logo" href="/" aria-label={`${site.name} — home`}><Wordmark /></a>
-    <button class="hdr__burger label" type="button" data-menu-close>
-      <span>Close</span>
+    <a class="hdr__logo" href="/" aria-label={`${site.name} — home`}><Logo variant="lime" /></a>
+    <button class="hdr__burger is-close" type="button" aria-label="Close menu" data-menu-close>
+      <span aria-hidden="true"><i></i><i></i></span>
     </button>
   </div>
   <nav class="wrap menu__nav" aria-label="Mobile">
     <ul>
-      <li style="--i:0"><a href="/" aria-current={path === '/' ? 'page' : undefined}><span class="label">00</span>Home</a></li>
+      <li style="--i:0"><a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a></li>
       {
         nav.map((item, i) => (
           <li style={`--i:${i + 1}`}>
             <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
-              <span class="label">0{i + 1}</span>
               {item.label}
             </a>
           </li>
@@ -69,7 +68,7 @@ const socials = socialLinks();
         <ul class="menu__social">
           {socials.map((s) => (
             <li>
-              <a class="ulink label" href={s.href} target="_blank" rel="noopener noreferrer">
+              <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
                 {s.label}
               </a>
             </li>
@@ -78,6 +77,8 @@ const socials = socialLinks();
       )
     }
   </div>
+  <Sticker name="star" class="menu__stk menu__stk--a" />
+  <Sticker name="bolt" class="menu__stk menu__stk--b" />
 </div>
 
 <style>
@@ -86,64 +87,100 @@ const socials = socialLinks();
     inset: 0 0 auto;
     z-index: 90;
     height: var(--header-h);
-    transition:
-      transform 0.6s var(--ease),
-      background-color 0.4s,
-      backdrop-filter 0.4s;
-  }
-  .hdr[data-scrolled='true'] {
-    background: color-mix(in srgb, var(--paper) 86%, transparent);
-    backdrop-filter: blur(14px) saturate(1.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    transition: transform 0.6s var(--ease);
+    pointer-events: none;
   }
   .hdr[data-hidden='true'] {
-    transform: translateY(-100%);
+    transform: translateY(-110%);
   }
   .hdr__in {
     height: 100%;
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 12px;
+  }
+  .hdr__in > * {
+    pointer-events: auto;
   }
   .hdr__logo {
-    font-size: clamp(15px, 1.15vw, 18px);
     margin-right: auto;
-    padding-block: 8px;
+    --logo-size: 19px;
+    display: inline-flex;
   }
   .hdr__nav ul {
     display: flex;
-    gap: clamp(18px, 2.4vw, 40px);
+    gap: 2px;
+    padding: 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--white) 82%, transparent);
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .hdr__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    transition: background 0.3s, color 0.3s;
+  }
+  .hdr__nav a:hover {
+    background: var(--paper-2);
+  }
+  .hdr__nav a[aria-current='page'] {
+    background: var(--ink);
+    color: var(--paper);
   }
   .hdr__cta {
-    min-height: 42px;
-    padding: 0 20px;
-    font-size: 12px;
+    min-height: 50px;
   }
   .hdr__burger {
     display: none;
-    align-items: center;
-    gap: 10px;
-    min-height: 44px;
-    padding: 0 4px;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
   }
-  .hdr__burger-lines {
+  .hdr__burger > span {
     display: grid;
-    gap: 5px;
-    width: 22px;
+    gap: 6px;
+    width: 20px;
   }
-  .hdr__burger-lines i {
+  .hdr__burger i {
     display: block;
-    height: 1.5px;
+    height: 2px;
+    border-radius: 2px;
     background: currentColor;
+    transition: transform 0.4s var(--ease);
+  }
+  .hdr__burger.is-close {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .hdr__burger.is-close i:first-child {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .hdr__burger.is-close i:last-child {
+    transform: translateY(-4px) rotate(-45deg);
   }
 
-  @media (max-width: 960px) {
-    .hdr__nav,
-    .hdr__cta {
+  @media (max-width: 1020px) {
+    .hdr__nav {
       display: none;
     }
     .hdr__burger {
-      display: inline-flex;
+      display: grid;
+    }
+  }
+  @media (max-width: 560px) {
+    .hdr__cta {
+      display: none;
     }
   }
 
@@ -154,12 +191,12 @@ const socials = socialLinks();
     z-index: 120;
     display: flex;
     flex-direction: column;
-    clip-path: inset(0 0 100% 0);
-    transition: clip-path 0.8s var(--ease-io);
-    overflow-y: auto;
+    overflow: hidden auto;
+    clip-path: circle(0% at calc(100% - 40px) 36px);
+    transition: clip-path 0.9s var(--ease-io);
   }
   .menu.is-open {
-    clip-path: inset(0 0 0 0);
+    clip-path: circle(150% at calc(100% - 40px) 36px);
   }
   .menu__top {
     height: var(--header-h);
@@ -169,51 +206,38 @@ const socials = socialLinks();
     flex: none;
   }
   .menu__top .hdr__burger {
-    display: inline-flex;
+    display: grid;
+  }
+  .menu__top .hdr__logo {
+    --logo-size: 19px;
   }
   .menu__nav {
     flex: 1;
     display: flex;
     align-items: center;
-    padding-block: 32px;
-  }
-  .menu__nav ul {
-    width: 100%;
+    padding-block: 24px;
   }
   .menu__nav li {
-    border-top: 1px solid var(--line);
     overflow: hidden;
   }
-  .menu__nav li:last-child {
-    border-bottom: 1px solid var(--line);
-  }
   .menu__nav a {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    padding: 10px 0;
-    font-family: var(--f-display);
-    font-weight: 600;
+    display: inline-block;
+    font-family: var(--f-mega);
     text-transform: uppercase;
-    letter-spacing: -0.04em;
-    font-size: clamp(2.6rem, 11vw, 5.5rem);
-    line-height: 0.95;
+    font-size: clamp(3.6rem, 16vw, 9rem);
+    line-height: 0.92;
     transform: translateY(105%);
-    transition: transform 0.9s var(--ease), color 0.3s;
-    transition-delay: calc(var(--i) * 55ms + 200ms);
-  }
-  .menu__nav a .label {
-    color: var(--muted);
-    letter-spacing: 0.06em;
-    font-family: var(--f-mono);
-    font-weight: 500;
-  }
-  .menu__nav a[aria-current='page'],
-  .menu__nav a:hover {
-    color: var(--signal);
+    transition:
+      transform 0.9s var(--ease),
+      color 0.25s;
+    transition-delay: calc(var(--i) * 55ms + 250ms);
   }
   .menu.is-open .menu__nav a {
     transform: none;
+  }
+  .menu__nav a:hover,
+  .menu__nav a[aria-current='page'] {
+    color: var(--lime);
   }
   .menu__foot {
     display: flex;
@@ -221,9 +245,27 @@ const socials = socialLinks();
     justify-content: space-between;
     gap: 16px;
     padding-bottom: 28px;
+    font-weight: 600;
   }
   .menu__social {
     display: flex;
     gap: 20px;
+  }
+  .menu :global(.menu__stk) {
+    position: absolute;
+    width: clamp(70px, 14vw, 140px);
+    pointer-events: none;
+    animation: bob 5s ease-in-out infinite;
+  }
+  .menu :global(.menu__stk--a) {
+    right: 10%;
+    top: 22%;
+    --r: 12deg;
+  }
+  .menu :global(.menu__stk--b) {
+    right: 22%;
+    bottom: 16%;
+    --r: -10deg;
+    animation-delay: -2s;
   }
 </style>

@@ -10,30 +10,29 @@ import SplitHeading from './SplitHeading.astro';
 interface Props {
   number?: string;
 }
-const { number = '07' } = Astro.props;
 const show = testimonials.length > 0 || import.meta.env.DEV;
 ---
 
 {
   show && (
-    <section class="section tst theme-paper-2" aria-labelledby="tst-title">
+    <section class="section tst theme-dark" aria-labelledby="tst-title">
       <div class="wrap">
-        <SectionHead number={number} label="Testimonials" aside={testimonials.length > 1 ? `${testimonials.length} voices` : undefined} />
-        <SplitHeading id="tst-title" class="display-l tst__title" lines={['Words from', 'the *other side.*']} />
+        <SectionHead label="Client stories" aside={testimonials.length > 1 ? `${testimonials.length} voices` : undefined} />
+        <SplitHeading id="tst-title" class="stack tst__title" lines={['~Words from', '>the other side.']} />
 
         {testimonials.length > 0 ? (
-          <div class="tst__track" data-tst>
+          <div class="tst__track">
             {testimonials.map((t, i) => (
               <figure class="tst__item" data-reveal style={`--d:${i * 90}`}>
-                <span class="tst__mark serif" aria-hidden="true">
+                <span class="tst__mark" aria-hidden="true">
                   “
                 </span>
                 <blockquote class="tst__quote">
                   <p>{t.quote}</p>
                 </blockquote>
                 <figcaption class="tst__who">
-                  <span class="label">{t.name}</span>
-                  <span class="label label--muted">
+                  <strong>{t.name}</strong>
+                  <span class="muted">
                     {t.role}
                     {t.company && `, ${t.company}`}
                   </span>
@@ -43,8 +42,8 @@ const show = testimonials.length > 0 || import.meta.env.DEV;
           </div>
         ) : (
           <p class="dev-note">
-            <strong>Editor note (dev only):</strong> this section is hidden on the live site until real testimonials
-            are added to <code>src/data/studio.ts → testimonials</code> (quote, name, role, company).
+            <strong>Editor note (dev only):</strong> this section is hidden on the live site until real testimonials are
+            added to <code>src/data/studio.ts → testimonials</code> (quote, name, role, company).
           </p>
         )}
       </div>
@@ -54,45 +53,47 @@ const show = testimonials.length > 0 || import.meta.env.DEV;
 
 <style>
   .tst__title {
-    margin-bottom: clamp(40px, 6vw, 96px);
+    margin-bottom: clamp(32px, 4vw, 64px);
   }
   .tst__track {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(300px, 42%);
+    grid-auto-columns: minmax(300px, 46%);
     gap: var(--gutter);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     padding-bottom: 16px;
-    scrollbar-width: thin;
   }
   .tst__item {
     scroll-snap-align: start;
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--fg);
+    gap: 20px;
+    padding: clamp(24px, 2.6vw, 40px);
+    border-radius: var(--radius);
+    background: var(--card);
   }
   .tst__mark {
-    font-size: 6rem;
+    font-family: var(--f-mega);
+    font-size: 7rem;
     line-height: 0.5;
-    color: var(--signal);
-    height: 0.45em;
+    height: 0.4em;
+    color: var(--lime);
   }
   .tst__quote {
-    font-family: var(--f-serif);
-    font-size: clamp(1.5rem, 2.4vw, 2.4rem);
-    line-height: 1.15;
+    font-weight: 600;
+    font-size: clamp(1.25rem, 1.9vw, 1.85rem);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
   }
   .tst__who {
     display: grid;
-    gap: 4px;
+    gap: 2px;
     margin-top: auto;
   }
   @media (max-width: 700px) {
     .tst__track {
-      grid-auto-columns: 86%;
+      grid-auto-columns: 88%;
     }
   }
 </style>

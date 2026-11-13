@@ -1,10 +1,10 @@
 import type { ImageMetadata } from 'astro';
 import swatches from '@/assets/img/swatches.jpg';
-import fashionRed from '@/assets/img/fashion-red.jpg';
-import photographer from '@/assets/img/photographer.jpg';
+import fashionRed from '@/assets/img/yellow-wall.jpg';
+import photographer from '@/assets/img/photographer-woman.jpg';
 import clapper from '@/assets/img/clapper.jpg';
-import concertOrange from '@/assets/img/concert-orange.jpg';
-import uiDesign from '@/assets/img/ui-design.jpg';
+import stageMic from '@/assets/img/mic.jpg';
+import uiDesign from '@/assets/img/retro-tech.jpg';
 
 export interface Service {
   slug: string;
@@ -39,7 +39,7 @@ export const services: Service[] = [
       'Campaigns built on a real idea, then planned, produced and placed where your audience actually spends its time — and measured against what you actually need.',
     items: ['Digital marketing', 'Campaign strategy', 'Social media marketing', 'Paid advertising', 'Content strategy', 'Campaign management', 'Marketing creatives'],
     image: fashionRed,
-    imageAlt: 'A model in a red top photographed against a saturated teal sky',
+    imageAlt: 'A woman in sunglasses striking a playful pose against a yellow wall',
   },
   {
     slug: 'photography-film',
@@ -50,7 +50,7 @@ export const services: Service[] = [
       'Commercial stills, brand films and short-form content directed with the same intent as the strategy behind them. Lit properly. Cut with care.',
     items: ['Commercial photography', 'Product photography', 'Fashion and lifestyle shoots', 'Corporate films', 'Promotional videos', 'Reels and short-form content', 'Event photography and videography'],
     image: photographer,
-    imageAlt: 'A photographer framing a shot on a busy city street',
+    imageAlt: 'A photographer holding a camera up to her eye at dusk',
   },
   {
     slug: 'creative-production',
@@ -71,8 +71,8 @@ export const services: Service[] = [
     description:
       'We brand the room, shape the moment and cover it from every angle, so an event keeps working long after the lights come up.',
     items: ['Event photography', 'Event videography', 'Promotional campaigns', 'Event branding', 'Creative coverage', 'Visual documentation'],
-    image: concertOrange,
-    imageAlt: 'A crowd silhouetted against warm stage light at a live event',
+    image: stageMic,
+    imageAlt: 'A microphone on a stand under warm stage light, waiting for the show',
   },
   {
     slug: 'digital-design',
@@ -83,7 +83,7 @@ export const services: Service[] = [
       'Websites, landing pages and digital creatives that look considered and perform under pressure — because a beautiful page that doesn’t convert is just decoration.',
     items: ['Website design', 'Landing pages', 'Graphic design', 'Digital creatives', 'UI/UX design', 'Marketing collateral'],
     image: uiDesign,
-    imageAlt: 'A designer’s monitor showing interface layouts in progress',
+    imageAlt: 'Retro computers and screens glowing in pink and blue light',
   },
 ];
 

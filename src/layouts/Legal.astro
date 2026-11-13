@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
 import { site } from '@/config/site';
 
 interface Props {
@@ -14,15 +15,12 @@ const { title, description, lines } = Astro.props;
 <Base title={title} description={description}>
   <section class="page-intro">
     <div class="wrap">
-      <div class="page-intro__meta label">
-        <span>(Legal) {title}</span>
-        <span class="label--muted">Last updated {site.legal.lastUpdated}</span>
-      </div>
-      <SplitHeading as="h1" class="display-l" lines={lines} />
+      <SectionHead label={title} aside={`Last updated ${site.legal.lastUpdated}`} />
+      <SplitHeading as="h1" class="stack" lines={lines} />
     </div>
   </section>
   <section class="wrap legal">
-    <div class="prose">
+    <div class="prose card legal__card">
       <slot />
     </div>
   </section>
@@ -32,13 +30,9 @@ const { title, description, lines } = Astro.props;
   .legal {
     padding-bottom: var(--section);
   }
-  .legal .prose {
+  .legal__card {
+    max-width: 880px;
     margin-left: auto;
-    margin-right: max(0px, calc((100% - 68ch) / 4));
-  }
-  @media (max-width: 900px) {
-    .legal .prose {
-      margin: 0;
-    }
+    padding: clamp(24px, 4vw, 56px);
   }
 </style>

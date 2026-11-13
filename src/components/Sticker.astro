@@ -1,0 +1,50 @@
+---
+/**
+ * Hand-drawn style doodles: black outline, lime and white fills.
+ * Decorative only — always aria-hidden.
+ */
+import type { StickerName } from '@/lib/stickers';
+
+interface Props {
+  name: StickerName;
+  class?: string;
+  style?: string;
+  [key: string]: unknown;
+}
+
+const { name, class: className = '', style, ...rest } = Astro.props;
+
+const L = 'var(--lime)';
+const W = '#fff';
+const K = 'var(--ink)';
+
+const art: Record<StickerName, string> = {
+  star: `<path d="M50 6 61 37h33L67 57l10 32-27-19-27 19 10-32L6 37h33z" fill="${L}"/><circle cx="42" cy="49" r="3.2" fill="${K}" stroke="none"/><circle cx="58" cy="49" r="3.2" fill="${K}" stroke="none"/><path d="M42 59q8 7 16 0" fill="none"/>`,
+  smiley: `<circle cx="50" cy="50" r="42" fill="${W}"/><ellipse cx="36" cy="40" rx="4" ry="6.5" fill="${K}" stroke="none"/><ellipse cx="64" cy="40" rx="4" ry="6.5" fill="${K}" stroke="none"/><path d="M27 56q23 36 46 0z" fill="${K}"/><path d="M40 70q10-7 20 0q-10 9-20 0z" fill="${L}" stroke="none"/>`,
+  megaphone: `<rect x="8" y="40" width="12" height="22" rx="3" fill="${W}"/><path d="M20 40 62 18v66L20 62z" fill="${L}"/><ellipse cx="62" cy="51" rx="8" ry="33" fill="${W}"/><path d="M28 63l5 22h10l-3-19" fill="${W}"/><path d="M78 32l12-8M80 51h14M78 70l12 8" fill="none"/>`,
+  camera: `<rect x="34" y="18" width="22" height="14" rx="4" fill="${W}"/><rect x="8" y="28" width="84" height="56" rx="11" fill="${W}"/><circle cx="50" cy="56" r="19" fill="${L}"/><circle cx="50" cy="56" r="8" fill="${K}"/><circle cx="54" cy="52" r="2.5" fill="${W}" stroke="none"/><rect x="72" y="37" width="11" height="7" rx="2" fill="${K}" stroke="none"/>`,
+  clapper: `<rect x="12" y="44" width="76" height="44" rx="5" fill="${W}"/><path d="M22 60h56M22 73h34" fill="none"/><g transform="rotate(-14 12 44)"><rect x="12" y="26" width="76" height="17" rx="3" fill="${L}"/><path d="M24 26h11l-7 17H17zM46 26h11l-7 17H39zM68 26h11l-7 17H61z" fill="${K}" stroke="none"/></g>`,
+  bulb: `<path d="M50 4v8M18 16l6 6M82 16l-6 6M6 44h8M86 44h8" fill="none"/><circle cx="50" cy="42" r="25" fill="${L}"/><path d="M40 63l1 10h18l1-10" fill="${L}"/><rect x="39" y="73" width="22" height="14" rx="4" fill="${W}"/><path d="M42 46l4-9 4 9 4-9 4 9" fill="none"/><path d="M44 93h12" fill="none"/>`,
+  eye: `<path d="M30 25l-5-11M50 19V7M70 25l5-11" fill="none"/><path d="M6 52Q50 8 94 52 50 96 6 52z" fill="${W}"/><circle cx="50" cy="52" r="18" fill="${L}"/><circle cx="50" cy="52" r="7.5" fill="${K}"/><circle cx="55" cy="47" r="3" fill="${W}" stroke="none"/>`,
+  bolt: `<path d="M58 4 16 58h30l-8 38 46-56H54z" fill="${L}"/>`,
+  rocket: `<path d="M42 76l8 20 8-20z" fill="${L}"/><path d="M36 56 20 76h16zM64 56l16 20H64z" fill="${L}"/><path d="M50 4c22 17 24 48 15 72H35C26 52 28 21 50 4z" fill="${W}"/><circle cx="50" cy="36" r="9" fill="${L}"/>`,
+  heart: `<path d="M50 88C13 63 6 40 17 25c10-14 29-11 33 4 4-15 23-18 33-4 11 15 4 38-33 63z" fill="${L}"/><path d="M26 34q3-8 11-9" fill="none"/>`,
+  bubble: `<path d="M15 14h70a7 7 0 0 1 7 7v40a7 7 0 0 1-7 7H45L25 88l4-20H15a7 7 0 0 1-7-7V21a7 7 0 0 1 7-7z" fill="${W}"/><rect x="45.5" y="24" width="9" height="24" rx="3" fill="${L}"/><circle cx="50" cy="57" r="4.5" fill="${L}"/>`,
+  pencil: `<g transform="rotate(-38 50 50)"><rect x="8" y="40" width="12" height="20" rx="3" fill="${W}"/><rect x="20" y="40" width="54" height="20" fill="${L}"/><path d="M20 50h54" fill="none"/><path d="M74 40l18 10-18 10z" fill="${W}"/><path d="M86 46.6 92 50l-6 3.4z" fill="${K}"/></g>`,
+  sparkle: `<path d="M50 5c4 32 12 40 45 45-33 5-41 13-45 45-4-32-12-40-45-45 33-5 41-13 45-45z" fill="${L}"/>`,
+};
+---
+
+<svg
+  class:list={['stk', className]}
+  viewBox="0 0 100 100"
+  aria-hidden="true"
+  focusable="false"
+  stroke="var(--ink)"
+  stroke-width="3.6"
+  stroke-linejoin="round"
+  stroke-linecap="round"
+  style={style}
+  {...rest}
+  set:html={art[name]}
+/>

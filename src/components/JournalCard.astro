@@ -7,20 +7,18 @@ interface Props {
   variant?: 'large' | 'row';
   sizes?: string;
 }
-const { post, variant = 'row', sizes = '(max-width: 760px) 100vw, 33vw' } = Astro.props;
+const { post, variant = 'large', sizes = '(max-width: 760px) 100vw, 33vw' } = Astro.props;
 const { data } = post;
 ---
 
 <article class:list={['jc', `jc--${variant}`]} data-reveal>
   <a href={`/journal/${post.id}/`} class="jc__link" data-cursor="Read">
-    <div class="jc__media media" data-reveal-img>
+    <div class="jc__media media">
       <Picture src={data.cover} alt={data.coverAlt} widths={[480, 800, 1200]} sizes={sizes} formats={['avif', 'webp']} />
+      <span class="chip jc__topic">{data.topic}</span>
     </div>
     <div class="jc__body">
-      <p class="jc__meta label label--muted">
-        <span>{data.topic}</span>
-        <time datetime={data.date.toISOString()}>{formatDate(data.date)}</time>
-      </p>
+      <time class="label label--muted" datetime={data.date.toISOString()}>{formatDate(data.date)}</time>
       <h3 class="jc__title">{data.title}</h3>
       {variant === 'large' && <p class="jc__excerpt muted">{data.excerpt}</p>}
     </div>
@@ -30,49 +28,53 @@ const { data } = post;
 <style>
   .jc__link {
     display: grid;
-    gap: 18px;
+    gap: 16px;
+    height: 100%;
   }
-  .jc--large .jc__media {
-    aspect-ratio: 4 / 3;
-  }
-  .jc--row .jc__link {
-    grid-template-columns: minmax(120px, 34%) 1fr;
-    gap: clamp(16px, 2vw, 28px);
-    align-items: start;
-  }
-  .jc--row .jc__media {
+  .jc__media {
     aspect-ratio: 4 / 3;
   }
   .jc__media :global(img) {
-    transition: transform 1.2s var(--ease) !important;
+    transition: transform 1.1s var(--ease);
   }
   .jc__link:hover .jc__media :global(img) {
-    transform: scale(1.05) !important;
+    transform: scale(1.05);
   }
-  .jc__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    margin-bottom: 10px;
+  .jc__topic {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--white);
+    border: 0;
+    color: var(--ink);
+  }
+  .jc--row .jc__link {
+    grid-template-columns: minmax(120px, 36%) 1fr;
+    align-items: center;
+  }
+  .jc--row .jc__topic {
+    display: none;
+  }
+  .jc__body {
+    display: grid;
+    gap: 8px;
+    align-content: start;
   }
   .jc__title {
-    font-family: var(--f-display);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.08;
-    font-size: clamp(1.25rem, 1.7vw, 1.7rem);
-    transition: color 0.3s;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-size: clamp(1.2rem, 1.6vw, 1.6rem);
   }
-  .jc--large .jc__title {
-    font-size: clamp(1.6rem, 2.6vw, 2.7rem);
-    line-height: 1.02;
+  .jc__title {
+    background: linear-gradient(var(--lime), var(--lime)) 0 88% / 0% 0.38em no-repeat;
+    transition: background-size 0.5s var(--ease);
   }
   .jc__link:hover .jc__title {
-    color: var(--signal);
+    background-size: 100% 0.38em;
   }
   .jc__excerpt {
-    margin-top: 12px;
-    max-width: 56ch;
+    max-width: 52ch;
   }
   @media (max-width: 520px) {
     .jc--row .jc__link {

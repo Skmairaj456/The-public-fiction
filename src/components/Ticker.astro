@@ -1,0 +1,78 @@
+---
+import Asterisk from './Asterisk.astro';
+
+interface Props {
+  items: readonly string[];
+  speed?: number;
+  variant?: 'lime' | 'ink';
+  reverse?: boolean;
+  tilt?: number;
+  class?: string;
+}
+const { items, speed = 32, variant = 'lime', reverse = false, tilt = 0, class: className = '' } = Astro.props;
+// Two identical halves make a seamless -50% loop.
+const loop = [...items, ...items, ...items, ...items];
+---
+
+<div class="tk-wrap">
+<div
+  class:list={['marquee', 'tk', `tk--${variant}`, reverse && 'marquee--reverse', className]}
+  style={`--marquee-speed:${speed}s;--tilt:${tilt}deg`}
+  aria-hidden="true"
+>
+  <div class="marquee__track">
+    {
+      loop.map((item) => (
+        <span class="tk__item">
+          {item}
+          <Asterisk class="tk__ast" />
+        </span>
+      ))
+    }
+  </div>
+</div>
+</div>
+<p class="sr-only">{items.join(', ')}</p>
+
+<style>
+  .tk-wrap {
+    overflow: hidden;
+    padding-block: clamp(14px, 2vw, 34px);
+    margin-block: calc(clamp(14px, 2vw, 34px) * -1);
+    position: relative;
+    z-index: 2;
+  }
+  .tk {
+    position: relative;
+    z-index: 2;
+    padding-block: clamp(10px, 1.2vw, 16px);
+    transform: rotate(var(--tilt));
+    margin-inline: -3vw;
+  }
+  .tk--lime {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .tk--ink {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .tk__item {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(14px, 2vw, 28px);
+    padding-right: clamp(14px, 2vw, 28px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    font-size: clamp(1rem, 1.7vw, 1.6rem);
+    line-height: 1;
+  }
+  .tk :global(.tk__ast) {
+    width: 0.8em;
+    height: 0.8em;
+  }
+  .tk--ink :global(.tk__ast) {
+    color: var(--lime);
+  }
+</style>

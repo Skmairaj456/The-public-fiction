@@ -1,0 +1,61 @@
+---
+/** Stacked badge lockup: THE PUBLIC / FICTION with a lime asterisk. */
+import Asterisk from './Asterisk.astro';
+
+interface Props {
+  variant?: 'ink' | 'lime';
+  class?: string;
+}
+const { variant = 'ink', class: className = '' } = Astro.props;
+---
+
+<span class:list={['logo', `logo--${variant}`, className]}>
+  <span class="logo__a">The Public</span>
+  <span class="logo__b">Fiction</span>
+  <Asterisk class="logo__ast" />
+</span>
+
+<style>
+  .logo {
+    position: relative;
+    display: inline-grid;
+    padding: 0.42em 0.55em 0.3em;
+    border-radius: 0.36em;
+    font-family: var(--f-mega);
+    text-transform: uppercase;
+    line-height: 0.86;
+    font-size: var(--logo-size, 22px);
+    letter-spacing: 0.01em;
+    transition: transform 0.5s var(--spring);
+  }
+  .logo--ink {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .logo--lime {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .logo__b {
+    font-size: 1.32em;
+  }
+  .logo :global(.logo__ast) {
+    position: absolute;
+    right: -0.32em;
+    top: -0.32em;
+    width: 0.85em;
+    height: 0.85em;
+    color: var(--lime);
+    filter: drop-shadow(0 0 0 var(--ink));
+    transition: transform 0.8s var(--ease);
+  }
+  .logo--lime :global(.logo__ast) {
+    color: var(--ink);
+  }
+  a:hover > .logo {
+    transform: rotate(-4deg) scale(1.04);
+  }
+  a:hover > .logo :global(.logo__ast) {
+    transform: rotate(180deg);
+  }
+</style>

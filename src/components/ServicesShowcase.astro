@@ -1,0 +1,265 @@
+---
+/**
+ * Services as tabs: list on the left, a large image with the service name
+ * set over it, and the details on the right. Without JS every panel shows.
+ */
+import { Picture } from 'astro:assets';
+import { services } from '@/data/services';
+import Arrow from './Arrow.astro';
+---
+
+<div class="sv" data-sv>
+  <div class="sv__tabs" role="tablist" aria-label="Services" aria-orientation="vertical">
+    {
+      services.map((s, i) => (
+        <button
+          type="button"
+          role="tab"
+          class="sv__tab"
+          id={`sv-tab-${s.slug}`}
+          aria-controls={`sv-panel-${s.slug}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          data-sv-tab
+        >
+          <span class="sv__tab-n">{s.number}</span>
+          {s.title}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="sv__panels">
+    {
+      services.map((s, i) => (
+        <section class="sv__panel" role="tabpanel" id={`sv-panel-${s.slug}`} aria-labelledby={`sv-tab-${s.slug}`} data-sv-panel data-index={i}>
+          <div class="sv__media media">
+            <Picture src={s.image} alt={s.imageAlt} widths={[600, 1000, 1400]} sizes="(max-width: 900px) 100vw, 46vw" formats={['avif', 'webp']} />
+            <h3 class="sv__title" aria-hidden="true">
+              {s.title}
+            </h3>
+          </div>
+          <div class="sv__body">
+            <p class="sv__num" aria-hidden="true">
+              /{s.number}
+            </p>
+            <p class="sv__line h-s">{s.line}</p>
+            <p class="muted">{s.description}</p>
+            <ul class="sv__items" aria-label={`${s.title} includes`}>
+              {s.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <a class="arrow-link" href={`/contact/?service=${s.slug}`}>
+              Start a project like this
+              <span class="btn__icon" aria-hidden="true">
+                <Arrow class="" />
+              </span>
+            </a>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .sv {
+    display: grid;
+    grid-template-columns: minmax(220px, 3fr) 9fr;
+    gap: var(--gutter);
+    align-items: start;
+  }
+  .sv__tabs {
+    display: grid;
+    gap: 4px;
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  .sv__tab {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    text-align: left;
+    font-weight: 700;
+    font-size: clamp(0.98rem, 1.1vw, 1.12rem);
+    color: var(--muted);
+    transition:
+      background 0.3s,
+      color 0.3s,
+      padding 0.4s var(--ease);
+  }
+  .sv__tab-n {
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+  .sv__tab:hover {
+    color: var(--fg);
+  }
+  .sv__tab[aria-selected='true'] {
+    background: var(--lime);
+    color: var(--ink);
+    padding-left: 20px;
+  }
+  .sv__panel {
+    display: grid;
+    grid-template-columns: 5fr 4fr;
+    gap: var(--gutter);
+    align-items: stretch;
+  }
+  .sv__panel + .sv__panel {
+    margin-top: 56px;
+  }
+  :global(html.js) .sv__panel + .sv__panel {
+    margin-top: 0;
+  }
+  .sv__media {
+    min-height: clamp(380px, 46vw, 640px);
+  }
+  .sv__media :global(img) {
+    position: absolute;
+    inset: 0;
+  }
+  .sv__title {
+    position: absolute;
+    left: clamp(16px, 2vw, 28px);
+    bottom: clamp(12px, 1.6vw, 24px);
+    right: 16px;
+    font-family: var(--f-mega);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(3rem, 6vw, 6.5rem);
+    line-height: 0.86;
+    color: var(--white);
+    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
+  }
+  .sv__body {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+    padding: clamp(20px, 2.4vw, 36px);
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--line);
+  }
+  .sv__num {
+    font-family: var(--f-mega);
+    font-size: clamp(3rem, 5vw, 5rem);
+    line-height: 0.8;
+    color: var(--fg);
+  }
+  :global(.theme-dark) .sv__num {
+    color: var(--lime);
+  }
+  .sv__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sv__items li {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .sv__panel.is-entering .sv__media :global(img) {
+    animation: sv-in 0.9s var(--ease);
+  }
+  .sv__panel.is-entering .sv__title,
+  .sv__panel.is-entering .sv__body > * {
+    animation: sv-up 0.7s var(--ease) both;
+  }
+  .sv__panel.is-entering .sv__body > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .sv__panel.is-entering .sv__body > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .sv__panel.is-entering .sv__body > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+  @keyframes sv-in {
+    from {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes sv-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .sv {
+      grid-template-columns: 1fr;
+    }
+    .sv__tabs {
+      position: static;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+    }
+    .sv__tab {
+      flex: none;
+      border: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 760px) {
+    .sv__panel {
+      grid-template-columns: 1fr;
+    }
+    .sv__media {
+      min-height: 320px;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-sv]').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sv-tab]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-sv-panel]'));
+
+    const select = (index: number, focus = false, user = true) => {
+      tabs.forEach((t, i) => {
+        const on = i === index;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+        // Keep the active chip visible in the horizontal strip on small screens.
+        if (on && user) t.parentElement!.scrollTo({ left: t.offsetLeft - 16, behavior: 'smooth' });
+      });
+      panels.forEach((p, i) => {
+        const on = i === index;
+        p.hidden = !on;
+        p.classList.toggle('is-entering', on);
+      });
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', (e) => {
+        const keys: Record<string, number> = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+        if (e.key in keys) {
+          e.preventDefault();
+          select((i + keys[e.key] + tabs.length) % tabs.length, true);
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          select(0, true);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          select(tabs.length - 1, true);
+        }
+      });
+    });
+
+    // Deep links such as /services/#photography-film select that tab.
+    const fromHash = tabs.findIndex((t) => t.id === `sv-tab-${location.hash.slice(1)}`);
+    select(Math.max(0, fromHash), false, false);
+  });
+</script>

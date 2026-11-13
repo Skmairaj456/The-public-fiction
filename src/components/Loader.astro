@@ -1,8 +1,9 @@
 ---
 /**
  * Brand intro, shown once per browser session on the home page.
- * Skipped entirely without JS, on repeat visits and for reduced-motion users.
+ * Skipped without JS, on repeat visits and for reduced-motion users.
  */
+import Logo from './Logo.astro';
 ---
 
 <script is:inline>
@@ -16,12 +17,8 @@
   })();
 </script>
 
-<div class="intro theme-ink" aria-hidden="true" data-intro>
-  <div class="intro__words">
-    <span class="lm"><span style="--i:0">The Public</span></span>
-    <span class="lm"><span class="serif" style="--i:1">fiction</span></span>
-  </div>
-  <div class="intro__bar"><i></i></div>
+<div class="intro" aria-hidden="true" data-intro>
+  <div class="intro__logo"><Logo variant="ink" /></div>
 </div>
 
 <style>
@@ -34,50 +31,18 @@
     z-index: 140;
     display: grid;
     place-items: center;
+    background: var(--lime);
     pointer-events: none;
-    animation: intro-out 0.9s var(--ease-io) 1.5s forwards;
+    animation: intro-out 0.9s var(--ease-io) 1.3s forwards;
   }
-  .intro__words {
-    text-align: center;
-    font-family: var(--f-display);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: -0.045em;
-    font-size: clamp(3rem, 10vw, 9rem);
-    line-height: 0.88;
+  .intro__logo {
+    --logo-size: clamp(40px, 7vw, 76px);
+    animation: intro-pop 1s var(--spring) both;
   }
-  .intro__words .serif {
-    text-transform: none;
-    font-size: 1.12em;
-    letter-spacing: -0.01em;
-  }
-  .intro__words .lm > span {
-    animation: intro-line 0.9s var(--ease) both;
-    animation-delay: calc(var(--i) * 120ms + 100ms);
-  }
-  .intro__bar {
-    position: absolute;
-    left: var(--gutter);
-    right: var(--gutter);
-    bottom: 32px;
-    height: 1px;
-    background: var(--line);
-  }
-  .intro__bar i {
-    display: block;
-    height: 100%;
-    background: var(--signal);
-    transform-origin: left;
-    animation: intro-bar 1.35s var(--ease-io) both;
-  }
-  @keyframes intro-line {
+  @keyframes intro-pop {
     from {
-      transform: translateY(108%);
-    }
-  }
-  @keyframes intro-bar {
-    from {
-      transform: scaleX(0);
+      transform: scale(0.3) rotate(-14deg);
+      opacity: 0;
     }
   }
   @keyframes intro-out {

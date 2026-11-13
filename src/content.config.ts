@@ -24,8 +24,6 @@ const work = defineCollection({
       title: z.string(),
       /** Only name a client who has approved being listed. */
       client: z.string().optional(),
-      /** true = demo/concept work. Shows a visible "Sample project" label everywhere. */
-      sample: z.boolean().default(false),
       category: z.enum(workCategories),
       summary: z.string(),
       year: z.number().int().optional(),

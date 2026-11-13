@@ -3,8 +3,8 @@ title: Nobody wakes up wanting to see an ad
 excerpt: Advertising works best when it earns its interruption. A few principles we keep coming back to.
 date: 2026-08-21
 topic: Advertising
-cover: ../../assets/img/city-night.jpg
-coverAlt: A city street at dusk with lights coming on
+cover: ../../assets/img/sleep-phone.jpg
+coverAlt: Someone asleep in a dark room, a phone glowing on the bed beside them
 ---
 
 It's worth starting from an uncomfortable truth: almost everyone, almost all of the time, would rather not be looking at your advertising. They were doing something else. You interrupted them.

@@ -1,7 +1,7 @@
 # THE PUBLIC FICTION — website
 
 Static marketing site for THE PUBLIC FICTION, built with [Astro](https://astro.build).
-It ships as plain HTML with about 9 KB of gzipped JavaScript, and needs no server.
+It ships as static HTML and needs no server. The only sizeable script is the physics library for the falling doodles, and it loads only on the home page.
 
 ```bash
 npm install
@@ -21,8 +21,8 @@ Deploy `dist/` to any static host (Netlify, Vercel, Cloudflare Pages, S3, …).
 | Instagram / LinkedIn URLs (hidden until set) | `src/config/site.ts → social` |
 | Verified WhatsApp Business number (hidden until set) | `src/config/site.ts → contact.whatsapp` |
 | Connect the enquiry form | see **Contact form** below |
-| Replace sample projects with real work | `src/content/work/` |
-| Replace placeholder photography | `src/assets/img/` (see `CREDITS.md`) |
+| Replace the placeholder projects with real work | `src/content/work/` |
+| Replace placeholder photography | `src/assets/img/` (Unsplash IDs in `scripts/placeholder-images.txt`) |
 | Add approved clients / genuine testimonials | `src/data/studio.ts` |
 | Have the privacy policy and terms reviewed | `src/pages/privacy.astro`, `src/pages/terms.astro` |
 | Regenerate the share image after changing the hero | `npm run brand-assets` |
@@ -44,7 +44,6 @@ Copy an existing file in `src/content/work/` and edit its frontmatter:
 ```yaml
 title: Project name
 client: Client Name          # only if the client has approved being named
-sample: false                # true shows a visible "Sample project" label
 category: Brand Campaign     # one of the categories in src/content.config.ts
 summary: One-line description for cards and SEO.
 year: 2026                   # optional
@@ -95,14 +94,18 @@ Without JavaScript, the form posts natively to the same destination. A hidden ho
 
 ## Design system
 
-- **Palette:** paper `#ECE8E1`, ink `#141312`, one signal colour `#E2412B`. Tokens are in `src/styles/global.css`.
-- **Type:** Host Grotesk (display, uppercase), Instrument Serif italic (the editorial counter-voice), Geist (body), Geist Mono (labels).
-- **Headline markup:** in `SplitHeading` line strings, `*word*` sets serif italic and `^word^` sets the signal colour.
+- **Palette:** paper `#F4F2ED`, ink `#0E0F11`, charcoal `#222528`, lime `#D4F500`. Tokens and the `.theme-dark`, `.theme-lime` and `.theme-white` section themes are in `src/styles/global.css`.
+- **Type:** Bebas Neue for the giant words (`.mega`), Plus Jakarta Sans for everything else.
+- **Headline markup:** in `SplitHeading` line strings, `*word*` adds the lime highlighter and `^word^` sets lime text. Prefix a line with `~` for a grey line and `>` to indent it.
+- **Doodles:** `<Sticker name="rocket" />`. The names are listed in `src/lib/stickers.ts`.
+- **Signature sections:** `WordTunnel` (3D word tunnel), `Reel` (frame that grows to full screen), `WorkShowcase` (stacking cards), `BlobWord` (colour-flip circle), `Playground` (falling, draggable doodles), `Ticker` (tilted marquee).
 - **Motion:** add the attributes below to any element.
   - `data-reveal` fades an element up on scroll.
   - `data-reveal-img` lifts a curtain over an image.
+  - `data-pop` pops a sticker in.
   - `data-draw` draws a line.
   - `data-parallax="0.1"` adds parallax.
+  - `data-fit` scales a word to fill its container.
 
   All motion is disabled for `prefers-reduced-motion`, and content stays visible without JavaScript.
 - **Page transitions:** native cross-document View Transitions in supporting browsers; other browsers navigate normally.

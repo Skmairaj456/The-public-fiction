@@ -59,7 +59,7 @@ const jsonLd = [org, ...schema];
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, follow" />}
-    <meta name="theme-color" content="#ece8e1" />
+    <meta name="theme-color" content="#f4f2ed" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -84,7 +84,7 @@ const jsonLd = [org, ...schema];
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@500&family=Host+Grotesk:wght@600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     />
 
     <script is:inline>
@@ -108,7 +108,7 @@ const jsonLd = [org, ...schema];
       <slot />
     </main>
     <Footer />
-    <div class="cursor label" aria-hidden="true" data-cursor-el><span></span></div>
+    <div class="cursor" aria-hidden="true" data-cursor-el><span></span></div>
 
     <script>
       import '@/scripts/main';
@@ -131,11 +131,16 @@ const jsonLd = [org, ...schema];
   .cursor span {
     display: inline-flex;
     align-items: center;
-    height: 40px;
-    padding: 0 18px;
+    height: 52px;
+    padding: 0 26px;
     border-radius: 999px;
-    background: var(--signal);
-    color: var(--paper);
+    background: var(--white);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
     white-space: nowrap;
     transform: translate(-50%, -50%) scale(0);
     transition: transform 0.45s var(--ease);

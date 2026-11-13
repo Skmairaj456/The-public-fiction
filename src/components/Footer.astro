@@ -1,20 +1,30 @@
 ---
 import { nav, site, socialLinks } from '@/config/site';
 import { services } from '@/data/services';
+import Asterisk from './Asterisk.astro';
+import Button from './Button.astro';
+import Sticker from './Sticker.astro';
 
 const socials = socialLinks();
 const year = new Date().getFullYear();
 ---
 
-<footer class="ftr theme-ink">
+<footer class="ftr theme-dark">
   <div class="wrap">
-    <div class="ftr__top grid">
-      <p class="ftr__tagline display-m" data-reveal>
-        Making ideas visible.<br />Making brands <span class="serif">matter.</span>
+    <div class="ftr__top">
+      <p class="ftr__tagline h-xl" data-reveal>
+        Making ideas visible.<br />Making brands <span class="lime">matter.</span>
       </p>
+      <div class="ftr__cta" data-reveal style="--d:120">
+        <a class="ftr__email" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+        <Button href="/contact/" variant="lime">Start a project</Button>
+      </div>
+      <Sticker name="rocket" class="ftr__stk" />
+    </div>
 
-      <nav class="ftr__col" aria-label="Footer">
-        <h2 class="label label--muted">Navigate</h2>
+    <div class="ftr__cols">
+      <nav aria-label="Footer">
+        <h2 class="label label--caps label--muted">Navigate</h2>
         <ul>
           <li><a class="ulink" href="/">Home</a></li>
           {
@@ -28,9 +38,8 @@ const year = new Date().getFullYear();
           }
         </ul>
       </nav>
-
-      <div class="ftr__col">
-        <h2 class="label label--muted">Services</h2>
+      <div>
+        <h2 class="label label--caps label--muted">Services</h2>
         <ul>
           {
             services.map((s) => (
@@ -43,93 +52,109 @@ const year = new Date().getFullYear();
           }
         </ul>
       </div>
-
-      <div class="ftr__col">
-        <h2 class="label label--muted">Contact</h2>
+      <div>
+        <h2 class="label label--caps label--muted">Contact</h2>
         <ul>
-          <li><a class="ulink" href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
+          <li><a class="ulink" href={`mailto:${site.contact.email}`}>Email us</a></li>
           {site.contact.phone && (
             <li>
               <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
             </li>
           )}
           {site.contact.location && <li class="muted">{site.contact.location}</li>}
-          <li><a class="ulink" href="/contact/">Project enquiry form</a></li>
+          <li><a class="ulink" href="/contact/">Project enquiry</a></li>
+          {socials.map((s) => (
+            <li>
+              <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
+                {s.label}
+              </a>
+            </li>
+          ))}
         </ul>
-        {
-          socials.length > 0 && (
-            <>
-              <h2 class="label label--muted ftr__sub">Follow</h2>
-              <ul>
-                {socials.map((s) => (
-                  <li>
-                    <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
-                      {s.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )
-        }
+      </div>
+      <div>
+        <h2 class="label label--caps label--muted">Legal</h2>
+        <ul>
+          <li><a class="ulink" href="/privacy/">Privacy policy</a></li>
+          <li><a class="ulink" href="/terms/">Terms &amp; conditions</a></li>
+        </ul>
       </div>
     </div>
+  </div>
 
-    <a class="ftr__mark" href="/" aria-label={`${site.name} — back to home`}>
-      <svg viewBox="0 0 1200 150" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-        <text x="0" y="122" textLength="1200" lengthAdjust="spacingAndGlyphs">
-          <tspan class="ftr__mark-a">THE PUBLIC </tspan><tspan class="ftr__mark-b">fiction</tspan>
-        </text>
-      </svg>
-    </a>
+  <a class="ftr__mark" href="/" aria-label={`${site.name} — back to home`}>
+    <svg viewBox="0 0 1000 118" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      <text x="0" y="112" textLength="1000" lengthAdjust="spacingAndGlyphs">THE PUBLIC FICTION</text>
+    </svg>
+  </a>
 
-    <div class="ftr__bottom label">
-      <span>© {year} {site.legal.entityName}. All rights reserved.</span>
-      <ul class="ftr__legal">
-        <li><a class="ulink" href="/privacy/">Privacy policy</a></li>
-        <li><a class="ulink" href="/terms/">Terms &amp; conditions</a></li>
-      </ul>
-      <a class="ulink" href="#top" data-scroll-top>Back to top ↑</a>
-    </div>
+  <div class="wrap ftr__bottom">
+    <span>© {year} {site.legal.entityName}</span>
+    <span class="ftr__made"><Asterisk class="ast ast--lime" /> We don’t just make things look good. We make ideas work.</span>
+    <a class="ulink" href="#top" data-scroll-top>Back to top ↑</a>
   </div>
 </footer>
 
 <style>
   .ftr {
-    padding-top: clamp(80px, 10vw, 160px);
+    padding-top: clamp(72px, 8vw, 120px);
     overflow: hidden;
     border-top: 1px solid var(--line);
   }
   .ftr__top {
-    row-gap: 48px;
-    padding-bottom: clamp(56px, 7vw, 110px);
-  }
-  .ftr__tagline {
-    grid-column: 1 / span 6;
-  }
-  .ftr__col {
-    grid-column: span 2;
-  }
-  .ftr__col:last-child {
-    grid-column: span 2;
-  }
-  .ftr__col h2 {
-    margin-bottom: 18px;
-  }
-  .ftr__col ul {
+    position: relative;
     display: grid;
-    gap: 8px;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 40px;
+    align-items: end;
+    padding-bottom: clamp(48px, 6vw, 88px);
+    border-bottom: 1px solid var(--line);
   }
-  .ftr__sub {
-    margin-top: 32px;
+  .ftr__cta {
+    display: grid;
+    gap: 22px;
+    justify-items: end;
+  }
+  .ftr__email {
+    font-size: clamp(1.25rem, 2.2vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    word-break: break-word;
+    transition: color 0.3s;
+  }
+  .ftr__email:hover {
+    color: var(--lime);
+  }
+  .ftr :global(.ftr__stk) {
+    position: absolute;
+    right: 38%;
+    top: -40px;
+    width: clamp(56px, 7vw, 100px);
+    --r: 18deg;
+    animation: bob 4.5s ease-in-out infinite;
+  }
+  .ftr__cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px var(--gutter);
+    padding-block: clamp(40px, 5vw, 72px);
+  }
+  .ftr__cols h2 {
+    margin-bottom: 16px;
+  }
+  .ftr__cols ul {
+    display: grid;
+    gap: 9px;
+    font-weight: 500;
   }
   .ftr__mark {
     display: block;
-    color: var(--paper);
-    transition: color 0.5s var(--ease);
+    padding-inline: var(--gutter);
+    color: var(--lime);
+    transition: color 0.4s;
   }
   .ftr__mark:hover {
-    color: var(--signal);
+    color: var(--paper);
   }
   .ftr__mark svg {
     width: 100%;
@@ -138,50 +163,41 @@ const year = new Date().getFullYear();
   }
   .ftr__mark text {
     fill: currentColor;
-  }
-  .ftr__mark-a {
-    font-family: var(--f-display);
-    font-weight: 700;
+    font-family: var(--f-mega);
     font-size: 150px;
-    letter-spacing: -0.045em;
-  }
-  .ftr__mark-b {
-    font-family: var(--f-serif);
-    font-style: italic;
-    font-size: 176px;
   }
   .ftr__bottom {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 16px 32px;
-    padding-block: 28px 32px;
-    margin-top: clamp(16px, 2vw, 32px);
-    border-top: 1px solid var(--line);
+    gap: 12px 32px;
+    padding-block: 22px 26px;
     color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .ftr__made {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
   .ftr__bottom a:hover {
     color: var(--fg);
   }
-  .ftr__legal {
-    display: flex;
-    gap: 24px;
-  }
-
-  @media (max-width: 1100px) {
-    .ftr__tagline {
-      grid-column: 1 / -1;
+  @media (max-width: 900px) {
+    .ftr__top {
+      grid-template-columns: 1fr;
     }
-    .ftr__col,
-    .ftr__col:last-child {
-      grid-column: span 4;
+    .ftr__cta {
+      justify-items: start;
     }
-  }
-  @media (max-width: 640px) {
-    .ftr__col,
-    .ftr__col:last-child {
-      grid-column: 1 / -1;
+    .ftr__cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ftr :global(.ftr__stk) {
+      right: 8%;
+      top: -20px;
     }
   }
 </style>

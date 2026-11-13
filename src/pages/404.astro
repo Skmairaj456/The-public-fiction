@@ -2,41 +2,60 @@
 import Base from '@/layouts/Base.astro';
 import SplitHeading from '@/components/SplitHeading.astro';
 import Button from '@/components/Button.astro';
+import Sticker from '@/components/Sticker.astro';
 ---
 
 <Base title="Page not found" description="This page doesn’t exist." noindex>
-  <section class="nf page-intro">
-    <div class="wrap">
-      <div class="page-intro__meta label">
-        <span>(Error) 404</span>
-      </div>
-      <SplitHeading as="h1" class="display-xl" lines={['This page is', 'pure *fiction.*']} />
+  <section class="nf">
+    <div class="wrap nf__in">
+      <p class="nf__mega mega" aria-hidden="true" data-fit>404</p>
+      <SplitHeading as="h1" class="stack" lines={['~This page is', '>pure fiction.']} />
       <div class="nf__foot" data-reveal>
         <p class="lede muted">The page you’re looking for has moved, never existed or is still being written.</p>
         <div class="nf__btns">
           <Button href="/">Back to home</Button>
-          <Button href="/work/" variant="line">See the work</Button>
+          <Button href="/work/" variant="ghost">See the work</Button>
         </div>
       </div>
+      <Sticker name="smiley" class="nf__stk" />
     </div>
   </section>
 </Base>
 
 <style>
   .nf {
-    min-height: 92vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
+    padding-block: calc(var(--header-h) + 32px) 64px;
+  }
+  .nf__in {
+    position: relative;
+  }
+  .nf__mega {
+    display: block;
+    font-size: 50vw;
+    line-height: 0.8;
+    color: var(--lime);
+    -webkit-text-stroke: 2px var(--ink);
   }
   .nf__foot {
-    margin-top: 48px;
+    margin-top: 32px;
     display: grid;
-    gap: 28px;
+    gap: 24px;
     justify-items: start;
   }
   .nf__btns {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
+  }
+  .nf :global(.nf__stk) {
+    position: absolute;
+    right: 8%;
+    top: 4%;
+    width: clamp(80px, 12vw, 170px);
+    --r: 12deg;
+    animation: bob 4s ease-in-out infinite;
   }
 </style>
