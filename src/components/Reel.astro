@@ -183,6 +183,9 @@ const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
     const frame = section.querySelector<HTMLElement>('[data-reel-frame]')!;
     const wl = section.querySelector<HTMLElement>('[data-reel-l]')!;
     const wr = section.querySelector<HTMLElement>('[data-reel-r]')!;
+    const sticky = section.querySelector<HTMLElement>('.reel__sticky')!;
+    const words = section.querySelector<HTMLElement>('.reel__words')!;
+    const hint = section.querySelector<HTMLElement>('.reel__hint')!;
 
     // Slideshow
     let i = 0;
@@ -229,6 +232,17 @@ const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
       wl.style.transform = small ? `translateY(${-push}px)` : `translateX(${-push}px)`;
       wr.style.transform = small ? `translateY(${push}px)` : `translateX(${push}px)`;
       wl.style.opacity = wr.style.opacity = String(1 - t);
+
+      // Entrance: while the section scrolls in, hold its content at the
+      // centre of the screen and grow it out of the point where the word
+      // tunnel above vanishes.
+      const ahead = Math.min(innerHeight, Math.max(0, rect.top));
+      const e = ease(1 - ahead / innerHeight);
+      sticky.style.transform = ahead > 0 ? `translateY(${(-ahead).toFixed(1)}px)` : '';
+      frame.style.transform = `translate(-50%, -50%) scale(${(0.02 + 0.98 * e).toFixed(4)})`;
+      frame.style.opacity = String(Math.min(1, e * 5));
+      words.style.opacity = hint.style.opacity = String(e);
+      words.style.transform = e < 1 ? `scale(${(0.4 + 0.6 * e).toFixed(4)})` : '';
     };
     const req = () => {
       if (!ticking) {

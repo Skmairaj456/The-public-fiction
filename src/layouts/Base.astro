@@ -109,6 +109,15 @@ const jsonLd = [org, ...schema];
     </main>
     <Footer />
     <div class="cursor" aria-hidden="true" data-cursor-el><span></span></div>
+    <script is:inline>
+      (() => {
+        const de = document.documentElement;
+        const set = () => de.classList.toggle('near-end', scrollY + innerHeight > de.scrollHeight / 2 + innerHeight / 2);
+        addEventListener('scroll', set, { passive: true });
+        addEventListener('resize', set);
+        set();
+      })();
+    </script>
 
     <script>
       import '@/scripts/main';

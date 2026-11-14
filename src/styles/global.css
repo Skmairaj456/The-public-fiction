@@ -88,6 +88,13 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
+  /* Phones paint this colour past the page edges (bounce scroll, behind the
+     browser toolbars). It follows the page: paper at the top, ink near the
+     footer, so the site always reaches the edge of the screen. */
+  background: var(--paper);
+}
+html.near-end {
+  background: var(--ink);
 }
 html.lenis,
 html.lenis body {

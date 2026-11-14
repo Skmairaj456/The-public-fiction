@@ -63,7 +63,7 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
 
   /* The real tunnel (JS + motion allowed) */
   :global(html.js:not(.reduce-motion)) .tun {
-    height: 340vh;
+    height: 400vh;
   }
   :global(html.js:not(.reduce-motion)) .tun__sticky {
     position: sticky;
@@ -120,7 +120,6 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     width: min(90vw, 900px);
     text-align: center;
     opacity: 0;
-    transition: opacity 0.4s;
     pointer-events: none;
   }
   .tun__center .mega--s {
@@ -142,6 +141,7 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     if (reduce) return;
     const tube = section.querySelector<HTMLElement>('[data-tube]')!;
     const center = section.querySelector<HTMLElement>('[data-tun-center]')!;
+    const hint = section.querySelector<HTMLElement>('.tun__hint')!;
     const words: string[] = JSON.parse(section.querySelector('template')!.innerHTML);
 
     let items: { el: HTMLElement; angle: number; z: number; w: number }[] = [];
@@ -185,6 +185,10 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
       ticking = false;
       const travel = progress * L * 1.55;
       const spin = progress * 70;
+      // The tunnel drains at the end: the far words go first and the near
+      // ones last, so the walls empty out toward the viewer.
+      const x = Math.min(1, Math.max(0, (progress - 0.48) / 0.18));
+      hint.style.opacity = String(1 - x);
       for (const it of items) {
         // Distance from the camera; wraps so the tunnel never runs out.
         const d = L - ((it.z + travel) % L);
@@ -196,7 +200,8 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
           it.el.style.opacity = '0';
           continue;
         }
-        it.el.style.opacity = String(Math.max(0, fadeIn * fadeOut));
+        const exit = Math.min(1, Math.max(0, 1 - x * (1 + 1.6 * (d / L))));
+        it.el.style.opacity = String(Math.max(0, fadeIn * fadeOut * exit));
         // Perspective is projected here rather than with CSS 3D, so the
         // tunnel renders the same in every browser (Safari drops words that
         // reach the camera plane). Each word lies along the tunnel wall: its
@@ -212,7 +217,16 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
         const a = ((it.angle + spin) * Math.PI) / 180;
         it.el.style.transform = `translate3d(${(rc * Math.cos(a)).toFixed(1)}px, ${(rc * Math.sin(a)).toFixed(1)}px, 0) rotate(${a.toFixed(4)}rad) scale(${sx.toFixed(3)}, ${sy.toFixed(3)}) translate(-50%, -50%)`;
       }
-      center.style.opacity = String(Math.max(0, (progress - 0.78) / 0.16));
+      // Once the tunnel is empty, the caption travels down the same passage:
+      // it emerges from the vanishing point, settles, then flies past the
+      // viewer, leaving the centre clear for the next section.
+      const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+      const cin = clamp01((progress - 0.67) / 0.16);
+      const cout = clamp01((progress - 0.9) / 0.1);
+      const grow = 1 - Math.pow(1 - cin, 3);
+      const scale = (0.03 + 0.97 * grow) * (1 + cout * cout * 2.2);
+      center.style.opacity = String(Math.min(1, cin * 3) * (1 - cout));
+      center.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(4)})`;
     };
 
     const measure = () => {
