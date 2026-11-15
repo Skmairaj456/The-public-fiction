@@ -299,7 +299,14 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
       measure();
     });
 
-    new IntersectionObserver(([e]) => (visible = e.isIntersecting), { rootMargin: '100px' }).observe(section);
+    new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        // Coming into view after a jump: draw the right frame straight away.
+        if (visible) measure();
+      },
+      { rootMargin: '100px' },
+    ).observe(section);
     addEventListener('scroll', () => visible && measure(), { passive: true });
     let rt = 0;
     addEventListener('resize', () => {

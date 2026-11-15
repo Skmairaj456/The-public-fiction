@@ -92,7 +92,7 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       </h1>
     </div>
 
-    <div class="hero__stickers" aria-hidden="true" data-hero-stickers>
+    <div class="hero__stickers" aria-hidden="true" data-hero-stickers data-lenis-prevent>
       {
         heroStickers.map((st, i) => (
           <span class="hero__stk" style={`--x:${st.x}%;--y:${st.y}%;--s:${st.s};--r:${st.r}deg;--d:${600 + i * 70};--k:${(i % 3) + 1}`}>
@@ -280,12 +280,6 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       --u: min(21vw, 13vh);
     }
   }
-  @media (pointer: coarse) {
-    /* Phones: sideways drags and taps play, vertical swipes still scroll. */
-    :global(html:not(.reduce-motion)) .hero__stk {
-      touch-action: pan-y;
-    }
-  }
   /* Intro: short, centred, black. */
   .intro__in {
     display: grid;
@@ -403,7 +397,7 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
    */
   import Matter from 'matter-js';
 
-  const { Engine, Bodies, Body, Composite, Constraint, Sleeping } = Matter;
+  const { Engine, Bodies, Body, Composite, Sleeping } = Matter;
   const box = document.querySelector<HTMLElement>('[data-hero-stickers]');
   const hero = box?.closest<HTMLElement>('.hero');
 
@@ -411,7 +405,12 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
     const items = Array.from(box.children) as HTMLElement[];
     let live = false;
 
-    const engine = Engine.create({ gravity: { x: 0, y: 1.1 }, enableSleeping: true });
+    const engine = Engine.create({
+      gravity: { x: 0, y: 1.1 },
+      enableSleeping: true,
+      positionIterations: 10,
+      velocityIterations: 8,
+    });
     const world = engine.world;
     type Thing = { el: HTMLElement; body: Matter.Body; w: number; h: number };
     let things: Thing[] = [];
@@ -446,19 +445,52 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
     const render = () => {
       for (const t of things) {
         const { x, y } = t.body.position;
-        t.el.style.transform = `translate3d(${(x - t.w / 2).toFixed(1)}px, ${(y - t.h / 2).toFixed(1)}px, 0) rotate(${t.body.angle.toFixed(4)}rad)`;
+        t.el.style.transform = `translate3d(${(x - t.w / 2).toFixed(2)}px, ${(y - t.h / 2).toFixed(2)}px, 0) rotate(${t.body.angle.toFixed(4)}rad)`;
       }
     };
 
     // Only run the simulation while something is moving.
-    let grab: { thing: Thing; c: Matter.Constraint; id: number; sx: number; sy: number; moved: boolean } | null = null;
+    let grab: {
+      thing: Thing;
+      id: number;
+      sx: number;
+      sy: number;
+      moved: boolean;
+      ox: number;
+      oy: number;
+      px: number;
+      py: number;
+    } | null = null;
     let raf = 0;
     let last = 0;
     let idle = 0;
+    let acc = 0;
+    const STEP = 1000 / 120;
+    const MAX_SPEED = 45;
+    const follow = () => {
+      if (!grab) return;
+      const b = grab.thing.body;
+      const tx = grab.px - grab.ox;
+      const ty = grab.py - grab.oy;
+      // Close most of the gap every step: tight to the finger, never jerky.
+      let vx = (tx - b.position.x) * 0.72;
+      let vy = (ty - b.position.y) * 0.72;
+      const sp = Math.hypot(vx, vy);
+      if (sp > MAX_SPEED) {
+        vx = (vx / sp) * MAX_SPEED;
+        vy = (vy / sp) * MAX_SPEED;
+      }
+      Body.setVelocity(b, { x: vx, y: vy });
+      Body.setAngularVelocity(b, b.angularVelocity * 0.9);
+    };
     const loop = (now: number) => {
-      const dt = Math.min(1000 / 30, last ? now - last : 1000 / 60);
+      acc += Math.min(50, last ? now - last : STEP);
       last = now;
-      Engine.update(engine, dt);
+      while (acc >= STEP) {
+        follow();
+        Engine.update(engine, STEP);
+        acc -= STEP;
+      }
       render();
       const moving = grab || dropping || things.some((t) => !t.body.isSleeping);
       idle = moving ? 0 : idle + 1;
@@ -468,6 +500,7 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       idle = 0;
       if (!raf) {
         last = 0;
+        acc = 0;
         raf = requestAnimationFrame(loop);
       }
     };
@@ -528,19 +561,20 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       if (!el || grab) return;
       const thing = things.find((t) => t.el === el);
       if (!thing) return;
-      if (e.pointerType === 'mouse') e.preventDefault();
+      e.preventDefault();
       Sleeping.set(thing.body, false);
       const p = local(e);
-      const c = Constraint.create({
-        pointA: p,
-        bodyB: thing.body,
-        pointB: { x: p.x - thing.body.position.x, y: p.y - thing.body.position.y },
-        stiffness: 0.2,
-        damping: 0.1,
-        length: 0,
-      });
-      Composite.add(world, c);
-      grab = { thing, c, id: e.pointerId, sx: e.clientX, sy: e.clientY, moved: false };
+      grab = {
+        thing,
+        id: e.pointerId,
+        sx: e.clientX,
+        sy: e.clientY,
+        moved: false,
+        ox: p.x - thing.body.position.x,
+        oy: p.y - thing.body.position.y,
+        px: p.x,
+        py: p.y,
+      };
       el.classList.add('is-grabbed');
       el.setPointerCapture(e.pointerId);
       run();
@@ -548,14 +582,16 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
 
     box.addEventListener('pointermove', (e) => {
       if (!grab || e.pointerId !== grab.id) return;
-      grab.c.pointA = local(e);
+      e.preventDefault();
+      const p = local(e);
+      grab.px = p.x;
+      grab.py = p.y;
       if (Math.abs(e.clientX - grab.sx) + Math.abs(e.clientY - grab.sy) > 6) grab.moved = true;
     });
 
     const release = (e: PointerEvent) => {
       if (!grab || e.pointerId !== grab.id) return;
-      const { thing, c, moved } = grab;
-      Composite.remove(world, c);
+      const { thing, moved } = grab;
       thing.el.classList.remove('is-grabbed');
       // A tap (no drag) makes the doodle hop.
       if (!moved) {
@@ -566,7 +602,6 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       run();
     };
     box.addEventListener('pointerup', release);
-    // The browser took the gesture over (a vertical swipe on a phone): just let go.
     box.addEventListener('pointercancel', (e) => {
       if (grab && e.pointerId === grab.id) grab.moved = true;
       release(e);

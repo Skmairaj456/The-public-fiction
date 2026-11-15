@@ -34,7 +34,7 @@ const { projects } = Astro.props;
   .ws__item :global(.ws__card) {
     transform: scale(var(--s, 1));
     transform-origin: 50% 0;
-    transition: transform 0.1s linear;
+    will-change: transform;
   }
   .ws__item :global(.pc__media) {
     height: clamp(360px, 74vh, 860px);
