@@ -8,10 +8,20 @@ import Reel from '@/components/Reel.astro';
 import WorkShowcase from '@/components/WorkShowcase.astro';
 import Experience from '@/components/Experience.astro';
 import SplitHeading from '@/components/SplitHeading.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import Button from '@/components/Button.astro';
+import ServicesShowcase from '@/components/ServicesShowcase.astro';
+import Process from '@/components/Process.astro';
+import Clients from '@/components/Clients.astro';
+import Testimonials from '@/components/Testimonials.astro';
+import JournalCard from '@/components/JournalCard.astro';
+import Faq from '@/components/Faq.astro';
+import Playground from '@/components/Playground.astro';
+import ContactSection from '@/components/ContactSection.astro';
 import { services } from '@/data/services';
 import { process } from '@/data/studio';
 import { site } from '@/config/site';
-import { getProjects } from '@/lib/content';
+import { getProjects, getPosts } from '@/lib/content';
 
 import reel1 from '@/assets/img/camera-dark.jpg';
 import reel2 from '@/assets/img/studio-lights.jpg';
@@ -23,6 +33,7 @@ import reel6 from '@/assets/img/photographer.jpg';
 const projects = await getProjects();
 const featured = projects.filter((p) => p.data.featured).slice(0, 6);
 const showcase = featured.length ? featured : projects.slice(0, 6);
+const posts = (await getPosts()).slice(0, 3);
 
 const tickerItems = ['Brand strategy', 'Identity', 'Advertising', 'Photography', 'Film', 'Social', 'Events', 'Digital'] as const;
 
@@ -136,6 +147,13 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       <h2 id="work-title" class="work__mega" data-split aria-label="Work">
         <span class="lm" aria-hidden="true"><span class="mega" data-fit>Work</span></span>
       </h2>
+      <div class="work__intro">
+        <SplitHeading class="stack work__stack" lines={['~Ideas are good.', '>Execution is', '>>everything.']} />
+        <div class="work__aside" data-reveal>
+          <p class="muted">Campaigns, identities, shoots, films and events — a cross-section of what we make and how we think.</p>
+          <Button href="/work/">View all work</Button>
+        </div>
+      </div>
       <WorkShowcase projects={showcase} />
     </div>
   </section>
@@ -148,6 +166,58 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
       { value: process.length, label: 'Stages, start to launch' },
     ]}
   />
+
+  <!-- SERVICES --------------------------------------------------------- -->
+  <section class="section theme-dark services" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <SectionHead label="What we do" aside="Six disciplines, one team" />
+      <SplitHeading id="services-title" class="stack services__title" lines={['~From the first idea', '>to the final', '>>impression.']} />
+      <ServicesShowcase />
+    </div>
+  </section>
+
+  <Ticker items={['Discover', 'Think', 'Create', 'Launch', 'Evolve']} variant="ink" reverse speed={26} tilt={1.5} />
+
+  <!-- APPROACH --------------------------------------------------------- -->
+  <section class="section approach" aria-labelledby="approach-title">
+    <div class="wrap">
+      <SectionHead label="Our approach" aside="Five stages, no mystery" />
+      <SplitHeading id="approach-title" class="stack approach__title" lines={["~Good work doesn't", '>happen by', '>>accident.']} />
+      <Process />
+    </div>
+  </section>
+
+  <Clients />
+
+  <Testimonials />
+
+  <!-- JOURNAL ---------------------------------------------------------- -->
+  <section class="section journal theme-white" aria-labelledby="journal-title">
+    <div class="wrap">
+      <SectionHead label="Journal" aside="Thoughts & observations" />
+      <div class="journal__head">
+        <SplitHeading id="journal-title" class="stack" lines={['~Thoughts,', '>observations &', '>>other good ideas.']} />
+        <div data-reveal><Button href="/journal/" variant="ghost">Read the journal</Button></div>
+      </div>
+      {
+        posts.length > 0 ? (
+          <div class="journal__grid">
+            {posts.map((p) => (
+              <JournalCard post={p} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty">New writing is on its way.</p>
+        )
+      }
+    </div>
+  </section>
+
+  <Faq />
+
+  <Playground />
+
+  <ContactSection />
 </Base>
 
 <style>
