@@ -1,6 +1,7 @@
 ---
 /**
- * A 3D tunnel of words that flies toward the viewer as the page scrolls.
+ * A ribbon of words on a rolling drum that bends into a 3D tunnel and flies
+ * toward the viewer as the page scrolls.
  * Words are placed on the inner wall of a cylinder (CSS 3D); a small script
  * moves them along the tunnel. Without JS or with reduced motion, the same
  * words render as a static, readable list.
@@ -63,7 +64,7 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
 
   /* The real tunnel (JS + motion allowed) */
   :global(html.js:not(.reduce-motion)) .tun {
-    height: 400vh;
+    height: 520vh;
   }
   :global(html.js:not(.reduce-motion)) .tun__sticky {
     position: sticky;
@@ -181,48 +182,100 @@ const { words, caption = 'Six disciplines. One team.' } = Astro.props;
     let visible = false;
     let ticking = false;
 
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+
     const render = () => {
       ticking = false;
-      const travel = progress * L * 1.55;
-      const spin = progress * 70;
+      // Three acts over the scroll:
+      //  1. a flat ribbon of words wrapped around a horizontal drum, rolling up;
+      //  2. the ribbon bends into the tunnel (each word glides from its line
+      //     on the drum to its place on the tunnel wall);
+      //  3. the tunnel flies, spins and drains, as before.
+      const mRaw = clamp01((progress - 0.06) / 0.26);
+      const q = clamp01((progress - 0.22) / 0.78);
+      const travel = q * L * 1.55;
+      const spin = q * 70;
       // The tunnel drains at the end: the far words go first and the near
       // ones last, so the walls empty out toward the viewer.
-      const x = Math.min(1, Math.max(0, (progress - 0.48) / 0.18));
+      const x = clamp01((q - 0.48) / 0.18);
       hint.style.opacity = String(1 - x);
-      for (const it of items) {
-        // Distance from the camera; wraps so the tunnel never runs out.
-        const d = L - ((it.z + travel) % L);
-        const z = -d + 260;
-        const fadeIn = Math.min(1, (L - d) / (L * 0.35));
-        const fadeOut = Math.min(1, Math.max(0, (d - 60) / 340));
-        const depth = P - z;
-        if (depth < 40) {
-          it.el.style.opacity = '0';
-          continue;
-        }
-        const exit = Math.min(1, Math.max(0, 1 - x * (1 + 1.6 * (d / L))));
-        it.el.style.opacity = String(Math.max(0, fadeIn * fadeOut * exit));
+
+      // The drum: lines of words stacked down the middle of the screen.
+      const vh = innerHeight;
+      const F = items[0]?.el.offsetHeight || 1;
+      const lh = Math.min(vh * 0.085, innerWidth * 0.11);
+      const k = (lh * 1.02) / F;
+      const drumR = vh * 0.46;
+      const rows = items.length;
+      const roll = progress * lh * 9;
+
+      items.forEach((it, i) => {
+        // --- Act 3 pose: on the tunnel wall --------------------------------
         // Perspective is projected here rather than with CSS 3D, so the
         // tunnel renders the same in every browser (Safari drops words that
         // reach the camera plane). Each word lies along the tunnel wall: its
         // far end and near end are projected separately and the word is
         // stretched between them. A near end that reaches the camera is
         // pushed off-screen, so nothing ever streaks across the centre.
-        const half = it.w / 2;
-        const rFar = (R * P) / (depth + half);
-        const rNear = (R * P) / Math.max(30, depth - half);
-        const rc = (rFar + rNear) / 2;
-        const sx = it.w ? (rNear - rFar) / it.w : 1;
-        const sy = P / depth;
-        const a = ((it.angle + spin) * Math.PI) / 180;
-        it.el.style.transform = `translate3d(${(rc * Math.cos(a)).toFixed(1)}px, ${(rc * Math.sin(a)).toFixed(1)}px, 0) rotate(${a.toFixed(4)}rad) scale(${sx.toFixed(3)}, ${sy.toFixed(3)}) translate(-50%, -50%)`;
-      }
+        const d = L - ((it.z + travel) % L);
+        const z = -d + 260;
+        const depth = P - z;
+        let tx = 0;
+        let ty = 0;
+        let ta = 0;
+        let tsx = k;
+        let tsy = k;
+        let top = 0;
+        if (depth >= 40) {
+          const fadeIn = Math.min(1, (L - d) / (L * 0.35));
+          const fadeOut = clamp01((d - 60) / 340);
+          const exit = clamp01(1 - x * (1 + 1.6 * (d / L)));
+          top = Math.max(0, fadeIn * fadeOut * exit);
+          const half = it.w / 2;
+          const rFar = (R * P) / (depth + half);
+          const rNear = (R * P) / Math.max(30, depth - half);
+          const rc = (rFar + rNear) / 2;
+          tsx = it.w ? (rNear - rFar) / it.w : 1;
+          tsy = P / depth;
+          const a = ((it.angle + spin) * Math.PI) / 180;
+          tx = rc * Math.cos(a);
+          ty = rc * Math.sin(a);
+          ta = Math.atan2(Math.sin(a), Math.cos(a));
+        }
+
+        // --- Act 1 pose: a line on the drum --------------------------------
+        let fy = (i - rows / 2) * lh - roll;
+        const span = rows * lh;
+        fy = ((((fy + span / 2) % span) + span) % span) - span / 2;
+        const th = fy / drumR;
+        const onFront = Math.abs(th) < Math.PI / 2;
+        const c = onFront ? Math.cos(th) : 0;
+        const fop = onFront ? Math.pow(c, 0.6) : 0;
+
+        // --- Blend between the two ----------------------------------------
+        // The ribbon peels into the tunnel from the top line down, so it
+        // unwraps as one surface instead of every word moving at once.
+        const band = clamp01((Math.max(-1.57, Math.min(1.57, th)) + 1.57) / 3.14);
+        const m = smooth(clamp01(mRaw * 1.7 - band * 0.7));
+        // Long words shrink to fit narrow screens while they sit on the drum.
+        const kf = Math.min(k, it.w ? (innerWidth * 0.92) / it.w : k);
+        const px = tx * m;
+        const py = drumR * Math.sin(Math.max(-1.57, Math.min(1.57, th))) * (1 - m) + ty * m;
+        const pa = ta * m;
+        const psx = kf * (1 - m) + tsx * m;
+        const psy = kf * c * (1 - m) + tsy * m;
+        const op = fop * (1 - m) + top * m;
+        it.el.style.opacity = op.toFixed(3);
+        if (op < 0.002) return;
+        it.el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) rotate(${pa.toFixed(4)}rad) scale(${psx.toFixed(3)}, ${Math.max(0.001, psy).toFixed(3)}) translate(-50%, -50%)`;
+      });
+
       // Once the tunnel is empty, the caption travels down the same passage:
       // it emerges from the vanishing point, settles, then flies past the
       // viewer, leaving the centre clear for the next section.
-      const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-      const cin = clamp01((progress - 0.67) / 0.16);
-      const cout = clamp01((progress - 0.9) / 0.1);
+      const cin = clamp01((q - 0.67) / 0.16);
+      const cout = clamp01((q - 0.9) / 0.1);
       const grow = 1 - Math.pow(1 - cin, 3);
       const scale = (0.03 + 0.97 * grow) * (1 + cout * cout * 2.2);
       center.style.opacity = String(Math.min(1, cin * 3) * (1 - cout));

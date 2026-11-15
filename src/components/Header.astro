@@ -104,7 +104,7 @@ const socials = socialLinks();
   }
   .hdr__logo {
     margin-right: auto;
-    --logo-size: 19px;
+    --logo-size: 23px;
     display: inline-flex;
   }
   .hdr__nav ul {
@@ -138,8 +138,13 @@ const socials = socialLinks();
   .hdr__cta {
     min-height: 50px;
   }
+  /* Logo + menu button on every screen size; the full-screen menu holds the nav. */
+  .hdr__nav,
+  .hdr__cta {
+    display: none !important;
+  }
   .hdr__burger {
-    display: none;
+    display: grid;
     place-items: center;
     width: 50px;
     height: 50px;

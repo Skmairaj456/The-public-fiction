@@ -6,8 +6,8 @@
 
 :root {
   /* Palette */
-  --paper: #f4f2ed;
-  --paper-2: #eae7e0;
+  --paper: #ffffff;
+  --paper-2: #f3f3f1;
   --white: #ffffff;
   --ink: #0e0f11;
   --char: #222528;
@@ -30,7 +30,7 @@
 
   /* Type */
   --f-mega: 'Bebas Neue', 'Oswald', Impact, 'Arial Narrow', sans-serif;
-  --f-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Space & shape */
   --gutter: clamp(16px, 2vw, 32px);
@@ -92,9 +92,6 @@ html {
      browser toolbars). It follows the page: paper at the top, ink near the
      footer, so the site always reaches the edge of the screen. */
   background: var(--paper);
-}
-html.near-end {
-  background: var(--ink);
 }
 html.lenis,
 html.lenis body {
@@ -520,9 +517,14 @@ button {
   font-size: 15px;
 }
 /* Comfortable finger-sized targets for small text links on touch screens */
+/* Touch screens: every link and button is at least a 44px tap target. */
 @media (pointer: coarse) {
   [data-scroll-top],
-  .ftr__email {
+  .ftr__email,
+  .ftr__links a,
+  .hero__scroll,
+  .sv-jump a,
+  dd > a.ulink {
     display: inline-flex;
     align-items: center;
     min-height: 44px;

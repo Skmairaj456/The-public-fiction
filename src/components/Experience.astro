@@ -1,0 +1,228 @@
+---
+/**
+ * EXPERIENCE: a rocket sits on a black dome under a giant word. On scroll the
+ * rocket launches, the dome rises and swells until the screen is black (the
+ * word flips from black to white through mix-blend-mode), then the facts
+ * count up underneath. Without JS or with reduced motion it renders as a
+ * plain black panel with the word and the facts.
+ */
+import Sticker from './Sticker.astro';
+
+interface Props {
+  word?: string;
+  facts: { value: number; label: string }[];
+}
+const { word = 'Experience', facts } = Astro.props;
+---
+
+<section class="xp" aria-label={word} data-xp>
+  <div class="xp__stage">
+    <div class="xp__dome" data-xp-dome aria-hidden="true"></div>
+    <span class="xp__rocket" data-xp-rocket aria-hidden="true"><Sticker name="rocket" /></span>
+    <p class="xp__word mega" aria-hidden="true">{word}</p>
+    <ul class="xp__facts" data-xp-facts>
+      {
+        facts.map((f) => (
+          <li>
+            <strong>
+              <span data-count={f.value}>{f.value}</span>
+            </strong>
+            <span class="xp__label">{f.label}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .xp {
+    position: relative;
+    background: var(--ink);
+  }
+  .xp__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: clamp(32px, 5vw, 72px);
+    min-height: 80vh;
+    padding: var(--section) var(--gutter);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--ink);
+  }
+  .xp__dome,
+  .xp__rocket {
+    display: none;
+  }
+  .xp__word {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    mix-blend-mode: difference;
+    font-size: clamp(4.6rem, 19vw, 22rem);
+    line-height: 0.82;
+  }
+  .xp__facts {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(20px, 4vw, 80px);
+    width: min(100%, 900px);
+    text-align: center;
+    color: var(--paper);
+  }
+  .xp__facts strong {
+    display: block;
+    font-size: clamp(2.4rem, 4.4vw, 4.4rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .xp__facts strong::after {
+    content: '✱';
+    margin-left: 0.12em;
+    font-size: 0.5em;
+    vertical-align: 0.7em;
+    color: var(--lime);
+  }
+  .xp__label {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+    font-weight: 500;
+  }
+
+  /* Scroll-driven version */
+  :global(html.js:not(.reduce-motion)) .xp {
+    height: 300vh;
+    background: var(--paper);
+  }
+  :global(html.js:not(.reduce-motion)) .xp__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    padding: 0;
+    display: block;
+    background: var(--paper);
+  }
+  :global(html.js:not(.reduce-motion)) .xp__word {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    translate: 0 calc(-50% - var(--lift, 0px));
+    text-align: center;
+  }
+  :global(html.js:not(.reduce-motion)) .xp__dome {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 170vmax;
+    height: 170vmax;
+    margin-left: -85vmax;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translateY(var(--dy, -14vmax)) scale(var(--ds, 0.2));
+    transform-origin: 50% 0;
+    will-change: transform;
+  }
+  :global(html.js:not(.reduce-motion)) .xp__rocket {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: 13vmax;
+    z-index: 2;
+    width: clamp(110px, 13vw, 220px);
+    translate: -50% 0;
+    transform: translateY(var(--ry, 0px)) rotate(var(--rr, 0deg));
+    will-change: transform;
+  }
+  .xp__rocket :global(.stk) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  :global(html.js:not(.reduce-motion)) .xp__facts {
+    position: absolute;
+    left: 50%;
+    bottom: 12vh;
+    translate: -50% 0;
+    width: min(calc(100% - 2 * var(--gutter)), 900px);
+    opacity: var(--fo, 0);
+    transform: translateY(calc((1 - var(--fo, 0)) * 30px));
+  }
+  @media (max-width: 640px) {
+    .xp__facts {
+      grid-template-columns: 1fr;
+      gap: 26px;
+    }
+    :global(html.js:not(.reduce-motion)) .xp__facts {
+      bottom: 6vh;
+    }
+  }
+</style>
+
+<script>
+  if (!document.documentElement.classList.contains('reduce-motion')) {
+    document.querySelectorAll<HTMLElement>('[data-xp]').forEach((section) => {
+      const stage = section.querySelector<HTMLElement>('.xp__stage')!;
+      const dome = section.querySelector<HTMLElement>('[data-xp-dome]')!;
+      const rocket = section.querySelector<HTMLElement>('[data-xp-rocket]')!;
+      const facts = section.querySelector<HTMLElement>('[data-xp-facts]')!;
+      const counters = Array.from(section.querySelectorAll<HTMLElement>('[data-count]'));
+      const clamp = (v: number) => Math.min(1, Math.max(0, v));
+      const easeIn = (t: number) => t * t * t;
+      const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+      let counted = false;
+      let ticking = false;
+
+      const countUp = () => {
+        counted = true;
+        const start = performance.now();
+        const step = (now: number) => {
+          const t = easeOut(clamp((now - start) / 1400));
+          counters.forEach((c) => (c.textContent = String(Math.round(Number(c.dataset.count) * t))));
+          if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+
+      const render = () => {
+        ticking = false;
+        const rect = section.getBoundingClientRect();
+        const total = section.offsetHeight - innerHeight;
+        const p = clamp(-rect.top / total);
+        const vh = innerHeight;
+        // 0 → 0.45: the rocket launches up and out of frame.
+        const launch = easeIn(clamp(p / 0.45));
+        rocket.style.setProperty('--ry', `${(-launch * vh * 1.25).toFixed(1)}px`);
+        rocket.style.setProperty('--rr', `${(launch * 8).toFixed(2)}deg`);
+        // 0.1 → 0.7: the dome rises and swells until it fills the screen.
+        const gt = clamp((p - 0.12) / 0.6);
+        const g = gt * gt * (3 - 2 * gt);
+        dome.style.setProperty('--dy', `${(-14 - g * 100).toFixed(2)}vmax`);
+        dome.style.setProperty('--ds', (0.2 + g * 1.4).toFixed(4));
+        // 0.7 → 0.85: the word lifts and the facts arrive.
+        const f = easeOut(clamp((p - 0.7) / 0.15));
+        stage.style.setProperty('--lift', `${(f * vh * 0.12).toFixed(1)}px`);
+        facts.style.setProperty('--fo', f.toFixed(3));
+        if (f > 0.4 && !counted) countUp();
+      };
+      const req = () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(render);
+        }
+      };
+      counters.forEach((c) => (c.textContent = '0'));
+      addEventListener('scroll', req, { passive: true });
+      addEventListener('resize', req);
+      render();
+    });
+  }
+</script>

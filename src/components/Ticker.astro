@@ -4,7 +4,7 @@ import Asterisk from './Asterisk.astro';
 interface Props {
   items: readonly string[];
   speed?: number;
-  variant?: 'lime' | 'ink';
+  variant?: 'lime' | 'ink' | 'white';
   reverse?: boolean;
   tilt?: number;
   class?: string;
@@ -52,6 +52,14 @@ const loop = [...items, ...items, ...items, ...items];
   .tk--lime {
     background: var(--lime);
     color: var(--ink);
+  }
+  .tk--white {
+    background: var(--paper);
+    color: var(--ink);
+    border-block: 1px solid var(--ink);
+  }
+  .tk--white .tk__item {
+    font-weight: 600;
   }
   .tk--ink {
     background: var(--ink);

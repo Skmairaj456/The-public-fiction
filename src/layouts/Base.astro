@@ -59,7 +59,7 @@ const jsonLd = [org, ...schema];
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, follow" />}
-    <meta name="theme-color" content="#f4f2ed" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -84,7 +84,7 @@ const jsonLd = [org, ...schema];
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap"
     />
 
     <script is:inline>
@@ -109,15 +109,6 @@ const jsonLd = [org, ...schema];
     </main>
     <Footer />
     <div class="cursor" aria-hidden="true" data-cursor-el><span></span></div>
-    <script is:inline>
-      (() => {
-        const de = document.documentElement;
-        const set = () => de.classList.toggle('near-end', scrollY + innerHeight > de.scrollHeight / 2 + innerHeight / 2);
-        addEventListener('scroll', set, { passive: true });
-        addEventListener('resize', set);
-        set();
-      })();
-    </script>
 
     <script>
       import '@/scripts/main';

@@ -1,203 +1,131 @@
 ---
+/**
+ * Light footer: logo and short link columns, then a giant "Contact!" that
+ * fills the width and leads to the contact page.
+ */
 import { nav, site, socialLinks } from '@/config/site';
-import { services } from '@/data/services';
-import Asterisk from './Asterisk.astro';
-import Button from './Button.astro';
-import Sticker from './Sticker.astro';
+import Logo from './Logo.astro';
 
 const socials = socialLinks();
 const year = new Date().getFullYear();
 ---
 
-<footer class="ftr theme-dark">
-  <div class="wrap">
-    <div class="ftr__top">
-      <p class="ftr__tagline h-xl" data-reveal>
-        Making ideas visible.<br />Making brands <span class="lime">matter.</span>
-      </p>
-      <div class="ftr__cta" data-reveal style="--d:120">
-        <a class="ftr__email" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
-        <Button href="/contact/" variant="lime">Start a project</Button>
-      </div>
-      <Sticker name="rocket" class="ftr__stk" />
-    </div>
+<footer class="ftr">
+  <div class="wrap ftr__top">
+    <a class="ftr__logo" href="/" aria-label={`${site.name} — home`}><Logo /></a>
 
-    <div class="ftr__cols">
-      <nav aria-label="Footer">
-        <h2 class="label label--caps label--muted">Navigate</h2>
-        <ul>
-          <li><a class="ulink" href="/">Home</a></li>
-          {
-            nav.map((item) => (
-              <li>
-                <a class="ulink" href={item.href}>
-                  {item.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-      <div>
-        <h2 class="label label--caps label--muted">Services</h2>
-        <ul>
-          {
-            services.map((s) => (
-              <li>
-                <a class="ulink" href={`/services/#${s.slug}`}>
-                  {s.title}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-      <div>
-        <h2 class="label label--caps label--muted">Contact</h2>
-        <ul>
-          <li><a class="ulink" href={`mailto:${site.contact.email}`}>Email us</a></li>
-          {site.contact.phone && (
-            <li>
-              <a class="ulink" href={`tel:${site.contact.phone.replace(/\s+/g, '')}`}>{site.contact.phone}</a>
-            </li>
-          )}
-          {site.contact.location && <li class="muted">{site.contact.location}</li>}
-          <li><a class="ulink" href="/contact/">Project enquiry</a></li>
+    {
+      socials.length > 0 && (
+        <ul class="ftr__links" aria-label="Social">
           {socials.map((s) => (
             <li>
-              <a class="ulink" href={s.href} target="_blank" rel="noopener noreferrer">
+              <a href={s.href} target="_blank" rel="noopener noreferrer">
                 {s.label}
               </a>
             </li>
           ))}
         </ul>
-      </div>
-      <div>
-        <h2 class="label label--caps label--muted">Legal</h2>
-        <ul>
-          <li><a class="ulink" href="/privacy/">Privacy policy</a></li>
-          <li><a class="ulink" href="/terms/">Terms &amp; conditions</a></li>
-        </ul>
-      </div>
-    </div>
+      )
+    }
+
+    <nav aria-label="Footer">
+      <ul class="ftr__links">
+        <li><a href="/">Home</a></li>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <ul class="ftr__links" aria-label="Contact and legal">
+      <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
+      <li><a href="/privacy/">Privacy</a></li>
+      <li><a href="/terms/">Terms</a></li>
+    </ul>
   </div>
 
-  <a class="ftr__mark" href="/" aria-label={`${site.name} — back to home`}>
-    <svg viewBox="0 0 1000 118" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-      <text x="0" y="112" textLength="1000" lengthAdjust="spacingAndGlyphs">THE PUBLIC FICTION</text>
-    </svg>
-  </a>
+  <div class="wrap">
+    <a class="ftr__big" href="/contact/" aria-label="Contact us">
+      <span class="mega" data-fit aria-hidden="true">Contact!</span>
+    </a>
+  </div>
 
   <div class="wrap ftr__bottom">
     <span>© {year} {site.legal.entityName}</span>
-    <span class="ftr__made"><Asterisk class="ast ast--lime" /> We don’t just make things look good. We make ideas work.</span>
-    <a class="ulink" href="#top" data-scroll-top>Back to top ↑</a>
+    <a href="#top" data-scroll-top>Back to top ↑</a>
   </div>
 </footer>
 
 <style>
   .ftr {
-    padding-top: clamp(72px, 8vw, 120px);
-    overflow: hidden;
-    border-top: 1px solid var(--line);
+    background: var(--paper-2);
+    color: var(--ink);
+    padding-top: clamp(40px, 5vw, 72px);
   }
   .ftr__top {
-    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: clamp(24px, 4vw, 64px);
+  }
+  .ftr__logo {
+    --logo-size: 23px;
+    display: inline-flex;
+    margin-right: clamp(0px, 2vw, 32px);
+  }
+  .ftr__links {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 40px;
-    align-items: end;
-    padding-bottom: clamp(48px, 6vw, 88px);
-    border-bottom: 1px solid var(--line);
+    gap: 6px;
   }
-  .ftr__cta {
-    display: grid;
-    gap: 22px;
-    justify-items: end;
-  }
-  .ftr__email {
-    font-size: clamp(1.25rem, 2.2vw, 2.2rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    word-break: break-word;
-    transition: color 0.3s;
-  }
-  .ftr__email:hover {
-    color: var(--lime);
-  }
-  .ftr :global(.ftr__stk) {
-    position: absolute;
-    right: 38%;
-    top: -40px;
-    width: clamp(56px, 7vw, 100px);
-    --r: 18deg;
-    animation: bob 4.5s ease-in-out infinite;
-  }
-  .ftr__cols {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 32px var(--gutter);
-    padding-block: clamp(40px, 5vw, 72px);
-  }
-  .ftr__cols h2 {
-    margin-bottom: 16px;
-  }
-  .ftr__cols ul {
-    display: grid;
-    gap: 9px;
+  .ftr__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    font-size: 14px;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    transition: color 0.25s;
   }
-  .ftr__mark {
+  .ftr__links a:hover {
+    color: var(--stone);
+  }
+  .ftr__big {
     display: block;
-    padding-inline: var(--gutter);
-    color: var(--lime);
-    transition: color 0.4s;
+    margin-top: clamp(40px, 7vw, 120px);
+    transition: color 0.4s var(--ease);
   }
-  .ftr__mark:hover {
-    color: var(--paper);
+  .ftr__big .mega {
+    display: block;
+    line-height: 0.82;
+    font-size: 20vw;
   }
-  .ftr__mark svg {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-  }
-  .ftr__mark text {
-    fill: currentColor;
-    font-family: var(--f-mega);
-    font-size: 150px;
+  .ftr__big:hover {
+    color: var(--stone);
   }
   .ftr__bottom {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     justify-content: space-between;
-    gap: 12px 32px;
-    padding-block: 22px 26px;
-    color: var(--muted);
-    font-size: 13.5px;
-    font-weight: 600;
-  }
-  .ftr__made {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    gap: 12px;
+    padding-block: clamp(18px, 2vw, 28px) clamp(22px, 2.6vw, 36px);
+    font-size: 13px;
+    font-weight: 500;
   }
   .ftr__bottom a:hover {
-    color: var(--fg);
+    text-decoration: underline;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 640px) {
     .ftr__top {
-      grid-template-columns: 1fr;
+      flex-direction: column;
+      gap: 22px;
     }
-    .ftr__cta {
-      justify-items: start;
-    }
-    .ftr__cols {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .ftr :global(.ftr__stk) {
-      right: 8%;
-      top: -20px;
+    .ftr__links a {
+      min-height: 32px;
     }
   }
 </style>

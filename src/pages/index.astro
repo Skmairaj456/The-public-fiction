@@ -1,26 +1,17 @@
 ---
 import Base from '@/layouts/Base.astro';
-import SectionHead from '@/components/SectionHead.astro';
-import SplitHeading from '@/components/SplitHeading.astro';
-import Button from '@/components/Button.astro';
 import Sticker from '@/components/Sticker.astro';
 import type { StickerName } from '@/lib/stickers';
 import Ticker from '@/components/Ticker.astro';
 import WordTunnel from '@/components/WordTunnel.astro';
 import Reel from '@/components/Reel.astro';
 import WorkShowcase from '@/components/WorkShowcase.astro';
-import BlobWord from '@/components/BlobWord.astro';
-import ServicesShowcase from '@/components/ServicesShowcase.astro';
-import Process from '@/components/Process.astro';
-import Clients from '@/components/Clients.astro';
-import Testimonials from '@/components/Testimonials.astro';
-import JournalCard from '@/components/JournalCard.astro';
-import Faq from '@/components/Faq.astro';
-import ContactSection from '@/components/ContactSection.astro';
-import Playground from '@/components/Playground.astro';
+import Experience from '@/components/Experience.astro';
+import SplitHeading from '@/components/SplitHeading.astro';
+import { services } from '@/data/services';
+import { process } from '@/data/studio';
 import { site } from '@/config/site';
-import { approach } from '@/data/studio';
-import { getProjects, getPosts } from '@/lib/content';
+import { getProjects } from '@/lib/content';
 
 import reel1 from '@/assets/img/camera-dark.jpg';
 import reel2 from '@/assets/img/studio-lights.jpg';
@@ -32,7 +23,6 @@ import reel6 from '@/assets/img/photographer.jpg';
 const projects = await getProjects();
 const featured = projects.filter((p) => p.data.featured).slice(0, 6);
 const showcase = featured.length ? featured : projects.slice(0, 6);
-const posts = (await getPosts()).slice(0, 3);
 
 const tickerItems = ['Brand strategy', 'Identity', 'Advertising', 'Photography', 'Film', 'Social', 'Events', 'Digital'] as const;
 
@@ -65,6 +55,18 @@ const reelFrames = [
 ];
 
 // Hero doodles: position (% of the hero), size and rotation.
+// Extra doodles that only join the falling pile; the static layout keeps the nine above.
+// `desk` ones are skipped on phones so the pile fits.
+const heroExtras: { name: StickerName; desk?: boolean }[] = [
+  { name: 'bulb' },
+  { name: 'heart' },
+  { name: 'bubble', desk: true },
+  { name: 'pencil', desk: true },
+  { name: 'smiley', desk: true },
+  { name: 'sparkle', desk: true },
+  { name: 'star', desk: true },
+];
+
 const heroStickers: { name: StickerName; x: number; y: number; s: number; r: number }[] = [
   { name: 'megaphone', x: 3, y: 64, s: 9, r: -14 },
   { name: 'star', x: 17, y: 12, s: 6, r: 10 },
@@ -83,69 +85,44 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
 <Base intro schema={schema}>
   <!-- HERO ------------------------------------------------------------- -->
   <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
-      <div class="hero__meta" data-reveal>
-        <span class="label"><span class="hero__dot" aria-hidden="true"></span>Independent creative company</span>
-        <ul class="hero__list label" aria-label="Disciplines">
-          <li>Brand</li>
-          <li>Campaigns</li>
-          <li>Photo &amp; film</li>
-          <li>Events</li>
-          <li>Digital</li>
-        </ul>
-      </div>
-
+    <div class="wrap hero__in">
       <h1 id="hero-title" class="hero__title" data-split aria-label={`${site.name} — we make brands impossible to ignore.`}>
-        <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:0" data-fit data-fit-vh="26">The Public</span></span>
-        <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:1" data-fit data-fit-vh="26">Fiction!</span></span>
+        <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:0" data-fit data-fit-vh="30">The Public</span></span>
+        <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:1" data-fit data-fit-vh="30">Fiction!</span></span>
       </h1>
-
-      <div class="hero__stickers" aria-hidden="true" data-hero-stickers>
-        {
-          heroStickers.map((st, i) => (
-            <span class="hero__stk" style={`--x:${st.x}%;--y:${st.y}%;--s:${st.s};--r:${st.r}deg;--d:${600 + i * 70};--k:${(i % 3) + 1}`} data-pop>
-              <Sticker name={st.name} />
-            </span>
-          ))
-        }
-      </div>
-
-      <div class="hero__foot">
-        <p class="hero__claim h-m" data-reveal style="--d:300">We make brands <span class="mark">impossible</span> to ignore.</p>
-        <p class="hero__copy muted" data-reveal style="--d:380">
-          We build brands, create campaigns and produce visual experiences that make people stop, look and remember.
-        </p>
-        <div class="hero__ctas" data-reveal style="--d:460">
-          <Button href="#work">Explore our work</Button>
-          <Button href="/contact/" variant="ghost">Start a project</Button>
-        </div>
-      </div>
     </div>
+
+    <div class="hero__stickers" aria-hidden="true" data-hero-stickers>
+      {
+        heroStickers.map((st, i) => (
+          <span class="hero__stk" style={`--x:${st.x}%;--y:${st.y}%;--s:${st.s};--r:${st.r}deg;--d:${600 + i * 70};--k:${(i % 3) + 1}`}>
+            <Sticker name={st.name} />
+          </span>
+        ))
+      }
+      {
+        heroExtras.map((st, i) => (
+          <span class:list={['hero__stk hero__stk--extra', st.desk && 'hero__stk--desk']} style={`--r:${i % 2 ? 12 : -10}deg;--k:${(i % 3) + 1}`}>
+            <Sticker name={st.name} />
+          </span>
+        ))
+      }
+    </div>
+
+    <a class="hero__scroll label label--caps" href="#about">[ Scroll ]</a>
   </section>
 
-  <Ticker items={tickerItems} tilt={-2} />
+  <Ticker items={tickerItems} variant="white" speed={38} />
 
   <!-- INTRO ------------------------------------------------------------ -->
   <section class="section intro theme-dark" id="about" aria-labelledby="intro-title">
     <div class="wrap intro__in">
-      <p class="label label--caps label--muted" data-reveal>Just an intro</p>
-      <SplitHeading id="intro-title" class="mega mega--s lime intro__title" lines={['Not just another', 'creative agency.']} />
-      <p class="lede intro__copy" data-reveal>
-        We bring strategy, creativity and production together to help brands find their voice, reach their audience and
-        make an impression.
+      <SplitHeading id="intro-title" class="mega lime intro__title" lines={['Just an intro']} />
+      <p class="intro__copy" data-reveal>
+        THE PUBLIC FICTION is an independent creative company. We build brands, create campaigns and produce visual
+        experiences that make people stop, look and remember.<sup>®</sup>
       </p>
-      <ol class="intro__steps" aria-label="How we work">
-        {
-          approach.map((step, i) => (
-            <li class="chip" data-reveal style={`--d:${i * 70}`}>
-              <span class="lime">0{i + 1}</span> {step}
-            </li>
-          ))
-        }
-      </ol>
-      <div data-reveal><Button href="/studio/" variant="ghost">Meet the studio</Button></div>
-      <Sticker name="bulb" class="intro__stk intro__stk--a" data-pop />
-      <Sticker name="heart" class="intro__stk intro__stk--b" data-pop />
+      <div data-reveal style="--d:120"><a class="intro__cta" href="/contact/">Let’s talk</a></div>
     </div>
   </section>
 
@@ -156,116 +133,47 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
   <!-- WORK ------------------------------------------------------------- -->
   <section class="section work" id="work" aria-labelledby="work-title">
     <div class="wrap">
-      <SectionHead label="Selected work" aside={`${projects.length} projects`} />
       <h2 id="work-title" class="work__mega" data-split aria-label="Work">
         <span class="lm" aria-hidden="true"><span class="mega" data-fit>Work</span></span>
       </h2>
-      <div class="work__intro">
-        <SplitHeading class="stack work__stack" lines={['~Ideas are good.', '>Execution is', '>>everything.']} />
-        <div class="work__aside" data-reveal>
-          <p class="muted">Campaigns, identities, shoots, films and events — a cross-section of what we make and how we think.</p>
-          <Button href="/work/">View all work</Button>
-        </div>
-      </div>
       <WorkShowcase projects={showcase} />
     </div>
   </section>
 
-  <BlobWord word="All of it." note="Strategy → Identity → Campaign → Production → Launch" />
-
-  <!-- SERVICES --------------------------------------------------------- -->
-  <section class="section theme-dark services" id="services" aria-labelledby="services-title">
-    <div class="wrap">
-      <SectionHead label="What we do" aside="Six disciplines, one team" />
-      <SplitHeading id="services-title" class="stack services__title" lines={['~From the first idea', '>to the final', '>>impression.']} />
-      <ServicesShowcase />
-    </div>
-  </section>
-
-  <Ticker items={['Discover', 'Think', 'Create', 'Launch', 'Evolve']} variant="ink" reverse speed={26} tilt={1.5} />
-
-  <!-- APPROACH --------------------------------------------------------- -->
-  <section class="section approach" aria-labelledby="approach-title">
-    <div class="wrap">
-      <SectionHead label="Our approach" aside="Five stages, no mystery" />
-      <SplitHeading id="approach-title" class="stack approach__title" lines={["~Good work doesn't", '>happen by', '>>accident.']} />
-      <Process />
-    </div>
-  </section>
-
-  <Clients />
-
-  <Testimonials />
-
-  <!-- JOURNAL ---------------------------------------------------------- -->
-  <section class="section journal theme-white" aria-labelledby="journal-title">
-    <div class="wrap">
-      <SectionHead label="Journal" aside="Thoughts & observations" />
-      <div class="journal__head">
-        <SplitHeading id="journal-title" class="stack" lines={['~Thoughts,', '>observations &', '>>other good ideas.']} />
-        <div data-reveal><Button href="/journal/" variant="ghost">Read the journal</Button></div>
-      </div>
-      {
-        posts.length > 0 ? (
-          <div class="journal__grid">
-            {posts.map((p) => (
-              <JournalCard post={p} />
-            ))}
-          </div>
-        ) : (
-          <p class="empty">New writing is on its way.</p>
-        )
-      }
-    </div>
-  </section>
-
-  <Faq />
-
-  <Playground />
-
-  <ContactSection />
+  <!-- EXPERIENCE ------------------------------------------------------- -->
+  <Experience
+    facts={[
+      { value: services.length, label: 'Disciplines' },
+      { value: 1, label: 'Team' },
+      { value: process.length, label: 'Stages, start to launch' },
+    ]}
+  />
 </Base>
 
 <style>
-  /* Hero */
+  /* Hero: full screen, the giant name, a pile of doodles and a scroll cue. */
   .hero {
     position: relative;
-    padding-top: calc(var(--header-h) + clamp(20px, 3vw, 44px));
-    padding-bottom: clamp(36px, 4vw, 64px);
-    overflow: hidden;
-  }
-  .hero .wrap {
-    position: relative;
-  }
-  .hero__meta {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: clamp(8px, 1.5vw, 20px);
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-top: var(--header-h);
+    overflow: hidden;
+    background: var(--paper);
   }
-  .hero__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--lime);
-    box-shadow: 0 0 0 3px var(--ink);
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    50% {
-      transform: scale(0.7);
-    }
-  }
-  .hero__list {
-    display: grid;
-    justify-items: end;
-    gap: 1px;
-    font-weight: 700;
+  .hero__in {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 14vh;
   }
   .hero__title {
     position: relative;
     z-index: 1;
+    text-align: center;
   }
   .hero__line {
     display: block;
@@ -275,9 +183,18 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
   .hero__title .lm {
     padding-top: 0.04em;
   }
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    z-index: 1;
+    translate: -50% 0;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
   .hero__stickers {
     position: absolute;
-    inset: 40px var(--gutter) 30%;
+    inset: var(--header-h) var(--gutter) 0;
     z-index: 2;
     pointer-events: none;
   }
@@ -285,97 +202,131 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
     position: absolute;
     left: var(--x);
     top: var(--y);
+    display: block;
     width: calc(var(--s) * 1vw);
     min-width: 46px;
   }
   .hero__stk :global(.stk) {
+    display: block;
     width: 100%;
     height: auto;
     transform: rotate(var(--r));
     animation: bob calc(3.4s + var(--k) * 0.6s) ease-in-out infinite;
     animation-delay: calc(var(--k) * -1.1s);
     filter: drop-shadow(4px 5px 0 rgba(14, 15, 17, 0.12));
+    transition:
+      scale 0.35s var(--spring),
+      filter 0.35s;
   }
-  .hero__foot {
-    position: relative;
+  /* Grabbable: the doodles can be dragged and thrown around the hero. */
+  :global(html:not(.reduce-motion)) .hero__stk {
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  @media (hover: hover) {
+    :global(html:not(.reduce-motion)) .hero__stk:hover :global(.stk) {
+      scale: 1.08;
+    }
+  }
+  /* Once someone grabs one, physics takes over positioning. */
+  /* With JS + motion the doodles wait off-stage, then fall into a pile. */
+  .hero__stk--extra {
+    display: none;
+  }
+  :global(html.js:not(.reduce-motion)) .hero__stk--extra {
+    display: block;
+  }
+  :global(html.js:not(.reduce-motion)) .hero__stk {
+    opacity: 0;
+  }
+  .hero__stickers.is-live .hero__stk.is-dropped {
+    opacity: 1;
+  }
+  .hero__stickers.is-live .hero__stk {
+    --u: min(clamp(84px, 10.5vw, 190px), 21vh);
+    width: calc(var(--u) * (0.86 + var(--k) * 0.1));
+    min-width: 0;
+    left: 0;
+    top: 0;
+    translate: none !important;
+    transition: none !important;
+    will-change: transform;
+  }
+  .hero__stickers.is-live .hero__stk :global(.stk) {
+    animation: none;
+    transform: none;
+  }
+  .hero__stk.is-grabbed {
     z-index: 3;
-    display: grid;
-    grid-template-columns: 5fr 4fr auto;
-    gap: 24px var(--gutter);
-    align-items: end;
-    margin-top: clamp(24px, 3vw, 44px);
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
+    cursor: grabbing;
   }
-  .hero__claim {
-    text-transform: none;
-    letter-spacing: -0.045em;
-    max-width: 16ch;
+  .hero__stk.is-grabbed :global(.stk) {
+    scale: 1.14;
+    filter: drop-shadow(8px 12px 0 rgba(14, 15, 17, 0.16));
   }
-  .hero__copy {
-    max-width: 40ch;
+  @media (max-width: 1000px) {
+    .hero__stickers.is-live .hero__stk {
+      --u: min(16vw, 22vh);
+    }
+    .hero__in {
+      padding-bottom: 4vh;
+    }
   }
-  .hero__ctas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-end;
+  @media (max-width: 700px) {
+    .hero__stickers.is-live .hero__stk {
+      --u: min(21vw, 13vh);
+    }
   }
-
-  /* Intro */
+  @media (pointer: coarse) {
+    /* Phones: sideways drags and taps play, vertical swipes still scroll. */
+    :global(html:not(.reduce-motion)) .hero__stk {
+      touch-action: pan-y;
+    }
+  }
+  /* Intro: short, centred, black. */
   .intro__in {
-    position: relative;
     display: grid;
     justify-items: center;
-    gap: clamp(20px, 2.4vw, 32px);
+    gap: clamp(20px, 2.4vw, 34px);
     text-align: center;
-    padding-block: clamp(20px, 4vw, 60px);
+    padding-block: clamp(40px, 8vw, 120px);
   }
   .intro__title {
-    font-size: clamp(3.4rem, 10vw, 11rem);
+    font-size: clamp(3.6rem, 7.4vw, 8rem);
     line-height: 0.86;
   }
   .intro__copy {
-    max-width: 34ch;
+    max-width: 30ch;
+    font-weight: 600;
+    font-size: clamp(1.15rem, 1.7vw, 1.6rem);
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    color: var(--paper);
   }
-  .intro__steps {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    max-width: 900px;
+  .intro__copy sup {
+    font-size: 0.55em;
   }
-  .intro__steps .chip {
-    min-height: 40px;
-    gap: 8px;
-    font-size: 14px;
+  .intro__cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 54px;
+    padding: 0 30px;
+    border: 2px solid var(--lime);
+    border-radius: 999px;
+    color: var(--lime);
+    font-size: clamp(1.05rem, 1.4vw, 1.3rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    transition:
+      background 0.35s var(--ease),
+      color 0.35s var(--ease);
   }
-  .intro :global(.intro__stk) {
-    position: absolute;
-    width: clamp(70px, 9vw, 140px);
-  }
-  .intro :global(.intro__stk--a) {
-    left: 4%;
-    top: 4%;
-    --r: -12deg;
-  }
-  .intro :global(.intro__stk--b) {
-    right: 5%;
-    bottom: 6%;
-    --r: 10deg;
-  }
-  :global(html.js:not(.reduce-motion)) .intro :global(.intro__stk.is-in) {
-    animation: bob 4.4s ease-in-out infinite;
-  }
-  @media (max-width: 640px) {
-    .intro :global(.intro__stk--a) {
-      top: -40px;
-      width: 56px;
-    }
-    .intro :global(.intro__stk--b) {
-      bottom: -30px;
-      width: 56px;
-    }
+  .intro__cta:hover {
+    background: var(--lime);
+    color: var(--ink);
   }
 
   /* Work */
@@ -421,13 +372,6 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
   }
 
   @media (max-width: 1000px) {
-    .hero__foot {
-      grid-template-columns: 1fr 1fr;
-    }
-    .hero__ctas {
-      grid-column: 1 / -1;
-      justify-content: flex-start;
-    }
     .work__intro {
       grid-template-columns: 1fr;
     }
@@ -436,18 +380,12 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
     }
   }
   @media (max-width: 700px) {
-    .hero__list {
-      display: none;
-    }
-    .hero__stickers {
-      inset: 20px var(--gutter) 62%;
-    }
     .hero__stk {
       width: calc(var(--s) * 1.8vw);
       min-width: 38px;
     }
-    .hero__foot {
-      grid-template-columns: 1fr;
+    .hero__in {
+      padding-bottom: 2vh;
     }
     .journal__grid {
       grid-template-columns: 1fr;
@@ -456,25 +394,201 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
 </style>
 
 <script>
-  // Hero doodles drift gently away from the pointer.
+  /*
+   * Hero doodles. After the intro they drop in one by one under real
+   * gravity and pile up across the bottom of the full-screen hero, partly
+   * over the big title. Visitors can grab, drag
+   * and throw them; a tap makes one hop. Without JS or with reduced motion
+   * the art-directed static layout is shown instead.
+   */
+  import Matter from 'matter-js';
+
+  const { Engine, Bodies, Body, Composite, Constraint, Sleeping } = Matter;
   const box = document.querySelector<HTMLElement>('[data-hero-stickers]');
-  if (box && !document.documentElement.classList.contains('reduce-motion') && matchMedia('(pointer: fine)').matches) {
+  const hero = box?.closest<HTMLElement>('.hero');
+
+  if (box && hero && !document.documentElement.classList.contains('reduce-motion')) {
     const items = Array.from(box.children) as HTMLElement[];
+    let live = false;
+
+    const engine = Engine.create({ gravity: { x: 0, y: 1.1 }, enableSleeping: true });
+    const world = engine.world;
+    type Thing = { el: HTMLElement; body: Matter.Body; w: number; h: number };
+    let things: Thing[] = [];
+    let walls: Matter.Body[] = [];
+
+    // Play area in the doodle layer's own coordinates: the whole hero, below
+    // the fixed header and above the headline copy and buttons.
+    const area = () => {
+      const b = box.getBoundingClientRect();
+      const h = hero.getBoundingClientRect();
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 72;
+      return { left: h.left - b.left, right: h.right - b.left, top: h.top - b.top + header, bottom: h.bottom - b.top - 6 };
+    };
+
+    const buildWalls = () => {
+      Composite.remove(world, walls);
+      const { left, right, top, bottom } = area();
+      const t = 400;
+      const w = right - left;
+      const hh = bottom - top;
+      const opts = { isStatic: true, restitution: 0.8 };
+      walls = [
+        // Ceiling well above the hero: doodles fall in from above, thrown ones come back down.
+        Bodies.rectangle(left + w / 2, top - 900 - t / 2, w + t * 2, t, opts),
+        Bodies.rectangle(left + w / 2, bottom + t / 2, w + t * 2, t, opts),
+        Bodies.rectangle(left - t / 2, top + hh / 2 - 450, t, hh + 900 + t * 2, opts),
+        Bodies.rectangle(right + t / 2, top + hh / 2 - 450, t, hh + 900 + t * 2, opts),
+      ];
+      Composite.add(world, walls);
+    };
+
+    const render = () => {
+      for (const t of things) {
+        const { x, y } = t.body.position;
+        t.el.style.transform = `translate3d(${(x - t.w / 2).toFixed(1)}px, ${(y - t.h / 2).toFixed(1)}px, 0) rotate(${t.body.angle.toFixed(4)}rad)`;
+      }
+    };
+
+    // Only run the simulation while something is moving.
+    let grab: { thing: Thing; c: Matter.Constraint; id: number; sx: number; sy: number; moved: boolean } | null = null;
     let raf = 0;
-    addEventListener(
-      'pointermove',
-      (e) => {
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => {
-          const dx = e.clientX / innerWidth - 0.5;
-          const dy = e.clientY / innerHeight - 0.5;
-          items.forEach((el) => {
-            const k = Number(getComputedStyle(el).getPropertyValue('--k')) || 1;
-            el.style.translate = `${dx * k * -22}px ${dy * k * -22}px`;
+    let last = 0;
+    let idle = 0;
+    const loop = (now: number) => {
+      const dt = Math.min(1000 / 30, last ? now - last : 1000 / 60);
+      last = now;
+      Engine.update(engine, dt);
+      render();
+      const moving = grab || dropping || things.some((t) => !t.body.isSleeping);
+      idle = moving ? 0 : idle + 1;
+      raf = idle > 30 ? 0 : requestAnimationFrame(loop);
+    };
+    const run = () => {
+      idle = 0;
+      if (!raf) {
+        last = 0;
+        raf = requestAnimationFrame(loop);
+      }
+    };
+
+    // Drop the doodles in one at a time from above the hero, at random spots.
+    let dropping = false;
+    const drop = () => {
+      live = true;
+      dropping = true;
+      box.classList.add('is-live');
+      buildWalls();
+      const { left, right, top } = area();
+      const shown = items.filter((el) => getComputedStyle(el).display !== 'none');
+      shown.sort(() => Math.random() - 0.5);
+      shown.forEach((el, i) => {
+        window.setTimeout(() => {
+          const w = el.offsetWidth;
+          const h = el.offsetHeight;
+          const rad = Math.max(w, h) * 0.42;
+          const x = left + rad + Math.random() * Math.max(1, right - left - rad * 2);
+          const body = Bodies.circle(x, top - h - Math.random() * 160, rad, {
+            restitution: 0.35,
+            friction: 0.35,
+            frictionAir: 0.012,
+            density: 0.0015,
           });
-        });
-      },
-      { passive: true },
-    );
+          Body.setAngle(body, (Math.random() - 0.5) * 1.2);
+          Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.06);
+          const thing = { el, body, w, h };
+          things.push(thing);
+          Composite.add(world, body);
+          render();
+          el.classList.add('is-dropped');
+          if (i === shown.length - 1) dropping = false;
+          run();
+        }, i * 120);
+      });
+    };
+
+    // Start once the brand intro has lifted and the hero is on screen.
+    const introDelay = document.documentElement.classList.contains('has-intro') ? 1500 : 250;
+    window.setTimeout(() => {
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        drop();
+      });
+      io.observe(hero);
+    }, introDelay);
+
+    const local = (e: PointerEvent) => {
+      const r = box.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    box.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('.hero__stk');
+      if (!el || grab) return;
+      const thing = things.find((t) => t.el === el);
+      if (!thing) return;
+      if (e.pointerType === 'mouse') e.preventDefault();
+      Sleeping.set(thing.body, false);
+      const p = local(e);
+      const c = Constraint.create({
+        pointA: p,
+        bodyB: thing.body,
+        pointB: { x: p.x - thing.body.position.x, y: p.y - thing.body.position.y },
+        stiffness: 0.2,
+        damping: 0.1,
+        length: 0,
+      });
+      Composite.add(world, c);
+      grab = { thing, c, id: e.pointerId, sx: e.clientX, sy: e.clientY, moved: false };
+      el.classList.add('is-grabbed');
+      el.setPointerCapture(e.pointerId);
+      run();
+    });
+
+    box.addEventListener('pointermove', (e) => {
+      if (!grab || e.pointerId !== grab.id) return;
+      grab.c.pointA = local(e);
+      if (Math.abs(e.clientX - grab.sx) + Math.abs(e.clientY - grab.sy) > 6) grab.moved = true;
+    });
+
+    const release = (e: PointerEvent) => {
+      if (!grab || e.pointerId !== grab.id) return;
+      const { thing, c, moved } = grab;
+      Composite.remove(world, c);
+      thing.el.classList.remove('is-grabbed');
+      // A tap (no drag) makes the doodle hop.
+      if (!moved) {
+        Body.setVelocity(thing.body, { x: (Math.random() - 0.5) * 6, y: -14 });
+        Body.setAngularVelocity(thing.body, (Math.random() - 0.5) * 0.4);
+      }
+      grab = null;
+      run();
+    };
+    box.addEventListener('pointerup', release);
+    // The browser took the gesture over (a vertical swipe on a phone): just let go.
+    box.addEventListener('pointercancel', (e) => {
+      if (grab && e.pointerId === grab.id) grab.moved = true;
+      release(e);
+    });
+
+    // Keep the play area in step with the layout; nudge strays back inside.
+    let rt = 0;
+    addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = window.setTimeout(() => {
+        if (!live) return;
+        buildWalls();
+        const { left, right, top, bottom } = area();
+        for (const t of things) {
+          const rad = Math.max(t.w, t.h) * 0.42;
+          Body.setPosition(t.body, {
+            x: Math.min(Math.max(t.body.position.x, left + rad), right - rad),
+            y: Math.min(t.body.position.y, bottom - rad),
+          });
+        }
+        run();
+      }, 150);
+    });
   }
 </script>
