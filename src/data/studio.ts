@@ -53,6 +53,18 @@ export const approach = [
 /** Frequently asked questions (FAQ section). Keep answers factual. */
 export const faqs = [
   {
+    q: 'What kind of agency is THE PUBLIC FICTION?',
+    a: 'An independent creative and brand agency. One team covers brand strategy and identity, marketing and advertising, social media marketing, photography and video production, creative production, events and digital design.',
+  },
+  {
+    q: 'Do you make Reels and short-form video?',
+    a: 'Yes. We plan, shoot and edit Instagram Reels and short-form video, as part of social media marketing or on their own, with the same creative direction as the rest of your brand.',
+  },
+  {
+    q: 'Can you run our social media marketing end to end?',
+    a: 'Yes. Social media strategy, content calendars, content production, publishing, community management, creator partnerships, paid social and reporting can all sit with us, or we can take on just the part you need.',
+  },
+  {
     q: 'How do we start working together?',
     a: 'Send us a project enquiry or an email. We read it properly, reply to arrange a short call, and follow up with a clear proposal: approach, timeline and cost.',
   },

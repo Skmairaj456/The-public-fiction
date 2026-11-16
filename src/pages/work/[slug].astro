@@ -7,6 +7,7 @@ import Button from '@/components/Button.astro';
 import Arrow from '@/components/Arrow.astro';
 import Asterisk from '@/components/Asterisk.astro';
 import { site } from '@/config/site';
+import { breadcrumbs } from '@/lib/seo';
 import { getProjects, type Project } from '@/lib/content';
 
 export async function getStaticPaths() {
@@ -52,10 +53,14 @@ const schema = [
     creator: { '@type': 'Organization', name: site.name },
     ...(data.year ? { dateCreated: String(data.year) } : {}),
   },
+  breadcrumbs([
+    { name: 'Work', path: '/work/' },
+    { name: data.title, path: Astro.url.pathname },
+  ]),
 ];
 ---
 
-<Base title={data.title} description={data.summary} image={og.src} imageAlt={data.coverAlt} type="article" schema={schema}>
+<Base title={`${data.title}: ${data.category} Project`} description={data.summary} image={og.src} imageAlt={data.coverAlt} type="article" schema={schema}>
   <article class="cs" style={`--tone:${data.tone}`}>
     <header class="page-intro cs__intro">
       <div class="wrap">

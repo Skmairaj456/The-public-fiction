@@ -5,6 +5,7 @@
  */
 import { nav, site, socialLinks } from '@/config/site';
 import Logo from './Logo.astro';
+import { services } from '@/data/services';
 
 const socials = socialLinks();
 const year = new Date().getFullYear();
@@ -40,6 +41,16 @@ const year = new Date().getFullYear();
         }
       </ul>
     </nav>
+
+    <ul class="ftr__links" aria-label="Services">
+      {
+        services.map((s) => (
+          <li>
+            <a href={`/services/${s.slug}/`}>{s.title}</a>
+          </li>
+        ))
+      }
+    </ul>
 
     <ul class="ftr__links" aria-label="Contact and legal">
       <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>

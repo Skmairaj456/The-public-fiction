@@ -11,7 +11,10 @@ const [lead, ...rest] = posts;
 const topics = [...new Set(posts.map((p) => p.data.topic))];
 ---
 
-<Base title="Journal" description="Marketing insights, branding, advertising, production notes and creative inspiration from THE PUBLIC FICTION.">
+<Base
+  title="Journal: Branding, Social Media & Marketing Insights"
+  description="Notes on branding, social media marketing, advertising and video production from THE PUBLIC FICTION, an independent creative and brand agency."
+>
   <section class="page-intro">
     <div class="wrap jl-head">
       <SectionHead label="Journal" aside={`${posts.length} ${posts.length === 1 ? 'article' : 'articles'}`} />

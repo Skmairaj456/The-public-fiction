@@ -6,6 +6,7 @@ import JournalCard from '@/components/JournalCard.astro';
 import Button from '@/components/Button.astro';
 import Arrow from '@/components/Arrow.astro';
 import { site } from '@/config/site';
+import { breadcrumbs } from '@/lib/seo';
 import { getPosts, formatDate, readingTime, type Post } from '@/lib/content';
 
 export async function getStaticPaths() {
@@ -39,6 +40,10 @@ const schema = [
     image: new URL(og.src, Astro.site ?? site.url).href,
     mainEntityOfPage: canonical,
   },
+  breadcrumbs([
+    { name: 'Journal', path: '/journal/' },
+    { name: data.title, path: Astro.url.pathname },
+  ]),
 ];
 ---
 

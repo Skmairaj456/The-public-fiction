@@ -26,6 +26,20 @@ Deploy `dist/` to any static host (Netlify, Vercel, Cloudflare Pages, S3, …).
 | Add approved clients / genuine testimonials | `src/data/studio.ts` |
 | Have the privacy policy and terms reviewed | `src/pages/privacy.astro`, `src/pages/terms.astro` |
 | Regenerate the share image after changing the hero | `npm run brand-assets` |
+| City or area you serve (turns on local search signals) | `src/config/site.ts → contact.location` |
+| Submit the sitemap to Google Search Console and Bing Webmaster Tools | `/sitemap-index.xml` |
+
+## SEO and AI search
+
+- **Service pages:** every service has its own page at `/services/<slug>/`, generated from `src/data/services.ts`. Its search title, description, "What is it?" answer and FAQs live in `src/data/service-seo.ts`. Keep the answers true to what the studio offers.
+- **Structured data:** builders are in `src/lib/seo.ts`.
+  - Every page carries Organization data, including the topics the studio works in.
+  - The home page adds WebSite and FAQ data.
+  - Service pages add Service, FAQ and breadcrumb data.
+  - Projects and articles add breadcrumbs.
+- **FAQ data:** FAQ markup is only used where the same questions are visible on the page. The home page FAQ comes from `src/data/studio.ts → faqs`.
+- **AI assistants:** `/llms.txt` is a plain-language summary for AI assistants and answer engines, built from the same data. `robots.txt` explicitly allows search and AI crawlers.
+- **Not included on purpose:** there are no ratings, reviews, addresses or statistics in the structured data. Add them only when they are real.
 
 ## Where content lives
 

@@ -21,6 +21,8 @@ import ContactSection from '@/components/ContactSection.astro';
 import { services } from '@/data/services';
 import { process } from '@/data/studio';
 import { site } from '@/config/site';
+import { faqs } from '@/data/studio';
+import { website, faqPage } from '@/lib/seo';
 import { getProjects, getPosts } from '@/lib/content';
 
 import reel1 from '@/assets/img/camera-dark.jpg';
@@ -91,14 +93,20 @@ const heroStickers: { name: StickerName; x: number; y: number; s: number; r: num
   { name: 'sparkle', x: 92, y: 62, s: 5, r: 0 },
 ];
 
-const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url }];
+const schema = [website(), faqPage(faqs)];
 ---
 
-<Base intro schema={schema}>
+<Base
+  intro
+  rawTitle
+  title="THE PUBLIC FICTION: Brand Agency for Social Media, Reels & Video"
+  description={site.description}
+  schema={schema}
+>
   <!-- HERO ------------------------------------------------------------- -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap hero__in">
-      <h1 id="hero-title" class="hero__title" data-split aria-label={`${site.name} — we make brands impossible to ignore.`}>
+      <h1 id="hero-title" class="hero__title" data-split aria-label={`${site.name}: creative and brand agency`}>
         <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:0" data-fit data-fit-vh="30">The Public</span></span>
         <span class="lm" aria-hidden="true"><span class="mega hero__line" style="--i:1" data-fit data-fit-vh="30">Fiction!</span></span>
       </h1>
@@ -131,8 +139,8 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
     <div class="wrap intro__in">
       <SplitHeading id="intro-title" class="mega lime intro__title" lines={['Just an intro']} />
       <p class="intro__copy" data-reveal>
-        THE PUBLIC FICTION is an independent creative company. We build brands, create campaigns and produce visual
-        experiences that make people stop, look and remember.<sup>®</sup>
+        THE PUBLIC FICTION is an independent creative and brand agency. We build brands, run social media marketing,
+        produce Reels, photography and film, and create campaigns that make people stop, look and remember.
       </p>
       <div data-reveal style="--d:120"><a class="intro__cta" href="/contact/">Let’s talk</a></div>
     </div>

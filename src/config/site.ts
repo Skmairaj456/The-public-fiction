@@ -14,7 +14,7 @@ export const site = {
   shortName: 'TPF',
   tagline: 'Making ideas visible. Making brands matter.',
   description:
-    'THE PUBLIC FICTION is an independent creative and marketing company. We build brands, create campaigns and produce photography, film and experiences that make people stop, look and remember.',
+    'Independent creative and brand agency for branding, social media marketing, Reels, photography, video production and campaigns that make people stop and look.',
 
   /** Production URL, no trailing slash. Used for canonical URLs, Open Graph and the sitemap. */
   url: 'https://www.thepublicfiction.com',

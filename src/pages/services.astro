@@ -8,13 +8,31 @@ import Button from '@/components/Button.astro';
 import Sticker from '@/components/Sticker.astro';
 import type { StickerName } from '@/lib/stickers';
 import { services } from '@/data/services';
+import { breadcrumbs } from '@/lib/seo';
+import { site } from '@/config/site';
 
 const icons: StickerName[] = ['star', 'megaphone', 'bubble', 'camera', 'clapper', 'smiley', 'bolt'];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${site.name} services`,
+    itemListElement: services.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: s.title,
+      url: new URL(`/services/${s.slug}/`, site.url).href,
+    })),
+  },
+  breadcrumbs([{ name: 'Services', path: '/services/' }]),
+];
 ---
 
 <Base
-  title="Services"
-  description="Brand strategy and identity, marketing and advertising, photography and film, creative production, events and digital design — from the first idea to the final impression."
+  title="Services: Branding, Social Media Marketing, Reels & Video Production"
+  description="Branding and identity, social media marketing, Reels and short-form video, photography and video production, advertising, events and web design in one team."
+  schema={schema}
 >
   <section class="page-intro">
     <div class="wrap">
@@ -25,8 +43,8 @@ const icons: StickerName[] = ['star', 'megaphone', 'bubble', 'camera', 'clapper'
       <div class="sv-intro">
         <SplitHeading as="p" class="stack" lines={['~Seven disciplines.', '>One team.']} />
         <p class="lede" data-reveal>
-          Strategy, design, production and media under one roof — so the idea that wins the room is the same idea that
-          reaches the audience.
+          Branding, social media marketing, Reels, photography, video production, advertising and design under one roof, so the
+          idea that wins the room is the same idea that reaches the audience.
         </p>
       </div>
       <nav class="sv-jump" aria-label="Jump to a service" data-reveal>
@@ -57,7 +75,7 @@ const icons: StickerName[] = ['star', 'megaphone', 'bubble', 'camera', 'clapper'
               <Sticker name={icons[i % icons.length]} class="sv-item__stk" />
             </div>
             <h2 id={`${s.slug}-title`} class="h-m">
-              {s.title}
+              <a class="sv-item__link" href={`/services/${s.slug}/`}>{s.title}</a>
             </h2>
             <p class="sv-item__line">{s.line}</p>
             <p class="muted">{s.description}</p>
@@ -66,9 +84,14 @@ const icons: StickerName[] = ['star', 'megaphone', 'bubble', 'camera', 'clapper'
                 <li>{item}</li>
               ))}
             </ul>
-            <Button href={`/contact/?service=${s.slug}`} variant="lime">
-              Start a project like this
-            </Button>
+            <div class="sv-item__ctas">
+              <Button href={`/contact/?service=${s.slug}`} variant="lime">
+                Start a project like this
+              </Button>
+              <Button href={`/services/${s.slug}/`} variant="ghost">
+                More about {s.title}
+              </Button>
+            </div>
           </div>
         </section>
       ))
@@ -180,6 +203,18 @@ const icons: StickerName[] = ['star', 'megaphone', 'bubble', 'camera', 'clapper'
   .sv-item__body .h-m {
     text-transform: none;
     letter-spacing: -0.045em;
+  }
+  .sv-item__link {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat;
+    transition: background-size 0.4s var(--ease);
+  }
+  .sv-item__link:hover {
+    background-size: 100% 2px;
+  }
+  .sv-item__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .sv-item__line {
     font-weight: 700;

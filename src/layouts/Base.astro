@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { site, socialLinks } from '@/config/site';
+import { organization } from '@/lib/seo';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import Loader from '@/components/Loader.astro';
@@ -18,35 +19,30 @@ interface Props {
   schema?: Record<string, unknown>[];
   /** Show the brand intro on first visit (home page). */
   intro?: boolean;
+  /** Use the title exactly as given, without appending the brand name. */
+  rawTitle?: boolean;
 }
 
 const {
   title,
   description = site.description,
   image = site.ogImage,
-  imageAlt = `${site.name} — creative, advertising and production company`,
+  imageAlt = `${site.name} — creative and brand agency`,
   type = 'website',
   noindex = false,
   schema = [],
   intro = false,
+  rawTitle = false,
 } = Astro.props;
 
-const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — Brands, campaigns & production`;
+const fullTitle = title && rawTitle ? title : title ? `${title} — ${site.name}` : `${site.name} — Creative & Brand Agency`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
 const ogImage = new URL(image, Astro.site ?? site.url).href;
 
-const org = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: site.name,
-  url: site.url,
-  description: site.description,
-  email: site.contact.email,
-  logo: new URL('/favicon.svg', site.url).href,
-  sameAs: socialLinks()
-    .filter((s) => s.label !== 'WhatsApp')
-    .map((s) => s.href),
-};
+const sameAs = socialLinks()
+  .filter((s) => s.label !== 'WhatsApp')
+  .map((s) => s.href);
+const org = { ...organization(), ...(sameAs.length ? { sameAs } : {}) };
 const jsonLd = [org, ...schema];
 ---
 
@@ -58,7 +54,7 @@ const jsonLd = [org, ...schema];
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
