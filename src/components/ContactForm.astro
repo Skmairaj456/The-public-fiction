@@ -31,6 +31,9 @@ if (provider === 'web3forms' && accessKey) {
   enctype = undefined;
 }
 const configuredProvider = action.startsWith('mailto:') ? 'none' : provider;
+// Honeypot field: named the way each form service checks it on its servers
+// (Formspree rejects "_gotcha", Web3Forms rejects "botcheck").
+const trapName = configuredProvider === 'formspree' ? '_gotcha' : 'botcheck';
 
 const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug })), { value: 'Something else', slug: 'other' }];
 ---
@@ -51,9 +54,10 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
     {configuredProvider === 'web3forms' && <input type="hidden" name="access_key" value={accessKey} />}
     <input type="hidden" name="subject" value={`New project enquiry — ${site.name}`} />
 
-    <!-- Spam trap: real people never see or fill this -->
-    <div class="cf__trap" aria-hidden="true">
-      <label>Leave this empty <input type="text" name="botcheck" tabindex="-1" autocomplete="off" /></label>
+    <!-- Spam trap: invisible to people (inline styles keep it hidden even without CSS) and skipped by
+         keyboards and screen readers. Bots that fill every field fill this one, and the submission is dropped. -->
+    <div class="cf__trap" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden">
+      <label>Leave this field empty <input type="text" name={trapName} value="" tabindex="-1" autocomplete="off" aria-hidden="true" data-trap /></label>
     </div>
 
     <p class="label label--muted cf__req" id={`${id}-required-note`}>Fields marked * are required.</p>
@@ -447,7 +451,7 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
         message: get('message'),
         budget: get('budget'),
         timeline: get('timeline'),
-        botcheck: get('botcheck'),
+        botcheck: String(form.querySelector<HTMLInputElement>('[data-trap]')?.value ?? '').trim(),
         services: data.getAll('service').map(String),
       };
     }
@@ -546,10 +550,10 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
             subject: `New project enquiry — ${f.company}`,
             from_name: f.name,
             replyto: f.email,
-            botcheck: '',
+            botcheck: f.botcheck,
           };
         } else if (provider === 'formspree') {
-          body = { ...payload, _replyto: f.email, _subject: `New project enquiry — ${f.company}` };
+          body = { ...payload, _replyto: f.email, _subject: `New project enquiry — ${f.company}`, _gotcha: f.botcheck };
         }
 
         const res = await fetch(endpoint, {
@@ -585,7 +589,8 @@ const serviceOptions = [...services.map((s) => ({ value: s.title, slug: s.slug }
         return;
       }
       const f = readFields();
-      if (f.botcheck) return; // Spam trap was filled — silently stop.
+      // Spam trap was filled: a bot. Stop here, without telling it why.
+      if (f.botcheck) return;
 
       if (provider === 'none' || !endpoint) {
         window.location.href = mailtoHref(f);

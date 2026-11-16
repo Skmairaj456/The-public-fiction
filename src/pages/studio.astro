@@ -10,10 +10,26 @@ import Button from '@/components/Button.astro';
 import Ticker from '@/components/Ticker.astro';
 import Sticker from '@/components/Sticker.astro';
 import type { StickerName } from '@/lib/stickers';
+import { Image } from 'astro:assets';
+import { team, studioLocation, realOnly, filled, isTodo } from '@/data/real-content';
 
 import studioWide from '@/assets/img/studio-lights.jpg';
 import studioA from '@/assets/img/camera.jpg';
 import studioB from '@/assets/img/team-wall.jpg';
+
+// Team and location come from src/data/real-content.ts (hidden on the live site until filled in).
+const people = realOnly(team, (t) => t.name);
+const city = filled(studioLocation.city);
+const cityNote = filled(studioLocation.note);
+const initials = (name: string) =>
+  isTodo(name)
+    ? '?'
+    : name
+        .split(/\s+/)
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
 
 const beliefs: { title: string; text: string; icon: StickerName }[] = [
   { title: 'Clarity beats volume', text: 'One sharp idea, said well, outperforms ten said loudly. We spend real time finding the one.', icon: 'bulb' },
@@ -25,7 +41,7 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
 
 <Base
   title="About: Independent Creative & Brand Agency"
-  description="Meet THE PUBLIC FICTION, an independent creative and brand agency combining brand strategy, social media marketing, video production and media in one team."
+  description="Meet The Public Fiction, an independent creative and brand agency combining brand strategy, social media marketing, video production and media in one team."
 >
   <section class="page-intro">
     <div class="wrap">
@@ -36,7 +52,7 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
       <div class="st-intro">
         <SplitHeading as="p" class="stack" lines={['~Every brand', '>tells a story.', '>>We make it public.']} />
         <p class="lede" data-reveal>
-          THE PUBLIC FICTION is an independent creative and marketing company. We bring strategy, creativity and
+          The Public Fiction is an independent creative and marketing company. We bring strategy, creativity and
           production together to help brands find their voice, reach their audience and make an impression.
         </p>
       </div>
@@ -73,7 +89,7 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
     </div>
   </section>
 
-  <Ticker items={['Think clearly', 'Make beautifully', 'Launch deliberately']} tilt={-1.5} />
+  <Ticker items={['Think clearly', 'Make beautifully', 'Launch deliberately']} tilt={-1.5} label="How we like to work" />
 
   <section class="section" aria-labelledby="beliefs-title">
     <div class="wrap">
@@ -100,6 +116,35 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
     </div>
   </section>
 
+  {
+    people.length > 0 && (
+      <section class="section" aria-labelledby="team-title">
+        <div class="wrap">
+          <SectionHead label="The team" aside="Who you’ll work with" />
+          <SplitHeading id="team-title" class="stack st-team-title" lines={['~Small team.', '>No hand-offs.']} />
+          <ul class="st-team">
+            {people.map((p, i) => (
+              <li class:list={['st-person', 'card', isTodo(p.name) && 'is-todo']} data-reveal style={`--d:${i * 80}`}>
+                <div class="st-person__photo">
+                  {p.photo ? (
+                    <Image src={p.photo} alt={p.name} width={480} height={480} />
+                  ) : (
+                    <span class="st-person__initials" aria-hidden="true">
+                      {initials(p.name)}
+                    </span>
+                  )}
+                </div>
+                <h3 class="h-s st-person__name">{p.name}</h3>
+                <p class="st-person__role">{p.role}</p>
+                {filled(p.line) && <p class="muted">{filled(p.line)}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
   <section class="section theme-white" aria-labelledby="approach-title">
     <div class="wrap">
       <SectionHead label="Our approach" aside="Five stages" />
@@ -107,6 +152,23 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
       <Process />
     </div>
   </section>
+
+  {
+    city && (
+      <section class="section" aria-labelledby="where-title">
+        <div class="wrap st-where">
+          <div>
+            <SectionHead label="Where we are" />
+            <h2 id="where-title" class="mega mega--m st-where__city">{city}</h2>
+          </div>
+          <div class="st-where__copy" data-reveal>
+            {cityNote && <p class="lede">{cityNote}</p>}
+            <Button href="/contact/" variant="ghost">Come and say hello</Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <Clients />
   <Testimonials />
@@ -212,6 +274,73 @@ const beliefs: { title: string; text: string; icon: StickerName }[] = [
   .st-bento__img :global(img) {
     position: absolute;
     inset: 0;
+  }
+  .st-team-title {
+    margin-bottom: clamp(36px, 4.5vw, 72px);
+  }
+  .st-team {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .st-person {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 12px 12px 22px;
+  }
+  .st-person.is-todo {
+    border-style: dashed;
+  }
+  .st-person__photo {
+    aspect-ratio: 1;
+    margin-bottom: 12px;
+    border-radius: calc(var(--radius) - 6px);
+    overflow: hidden;
+    background: var(--paper-2);
+    display: grid;
+    place-items: center;
+  }
+  .st-person__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .st-person__initials {
+    font-family: var(--f-mega);
+    font-size: clamp(3rem, 6vw, 5rem);
+    color: var(--muted);
+  }
+  .st-person__name,
+  .st-person__role,
+  .st-person .muted {
+    padding-inline: 8px;
+  }
+  .st-person__name {
+    text-transform: none;
+    letter-spacing: -0.03em;
+  }
+  .st-person__role {
+    font-weight: 600;
+  }
+  .st-where {
+    display: grid;
+    grid-template-columns: 6fr 5fr;
+    gap: 32px clamp(32px, 5vw, 96px);
+    align-items: end;
+  }
+  .st-where__city {
+    white-space: normal;
+  }
+  .st-where__copy {
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+  @media (max-width: 900px) {
+    .st-where {
+      grid-template-columns: 1fr;
+    }
   }
   .st-cta {
     border-radius: var(--radius-l) var(--radius-l) 0 0;

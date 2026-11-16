@@ -8,6 +8,7 @@ import Button from '@/components/Button.astro';
 import Sticker from '@/components/Sticker.astro';
 import type { StickerName } from '@/lib/stickers';
 import { services } from '@/data/services';
+import PriceFrom from '@/components/PriceFrom.astro';
 import { breadcrumbs } from '@/lib/seo';
 import { site } from '@/config/site';
 
@@ -79,6 +80,7 @@ const schema = [
             </h2>
             <p class="sv-item__line">{s.line}</p>
             <p class="muted">{s.description}</p>
+            <PriceFrom slug={s.slug} />
             <ul class="sv-item__list" aria-label={`${s.title} includes`}>
               {s.items.map((item) => (
                 <li>{item}</li>

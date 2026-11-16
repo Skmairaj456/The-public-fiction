@@ -6,6 +6,7 @@
 import { Picture } from 'astro:assets';
 import { services } from '@/data/services';
 import Arrow from './Arrow.astro';
+import PriceFrom from './PriceFrom.astro';
 ---
 
 <div class="sv" data-sv>
@@ -45,6 +46,7 @@ import Arrow from './Arrow.astro';
             </p>
             <p class="sv__line h-s">{s.line}</p>
             <p class="muted">{s.description}</p>
+            <PriceFrom slug={s.slug} />
             <ul class="sv__items" aria-label={`${s.title} includes`}>
               {s.items.map((item) => (
                 <li>{item}</li>

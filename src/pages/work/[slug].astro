@@ -9,6 +9,7 @@ import Asterisk from '@/components/Asterisk.astro';
 import { site } from '@/config/site';
 import { breadcrumbs } from '@/lib/seo';
 import { getProjects, type Project } from '@/lib/content';
+import { caseStudies, filled, isTodo } from '@/data/real-content';
 
 export async function getStaticPaths() {
   const projects = await getProjects();
@@ -43,6 +44,15 @@ const chapters = [
   { n: '03', label: 'Execution', text: data.execution },
 ];
 
+// Case-study facts from src/data/real-content.ts (hidden on the live site until filled in).
+const facts = caseStudies[project.id];
+const client = filled(facts?.client) ?? data.client;
+const glance = [
+  { label: 'The brief', value: filled(facts?.brief) },
+  { label: 'What we did', value: filled(facts?.whatWeDid) },
+  { label: 'The result', value: filled(facts?.result), result: true },
+].filter((g) => g.value);
+
 const schema = [
   {
     '@context': 'https://schema.org',
@@ -74,10 +84,10 @@ const schema = [
         <p class="lede cs__summary" data-reveal>{data.summary}</p>
         <dl class="cs__facts" data-reveal style="--d:150">
           {
-            data.client && (
-              <div class="card">
+            client && (
+              <div class:list={['card', isTodo(client) && 'is-todo']}>
                 <dt class="label label--caps label--muted">Client</dt>
-                <dd>{data.client}</dd>
+                <dd>{client}</dd>
               </div>
             )
           }
@@ -125,6 +135,25 @@ const schema = [
         <p class="cs__lede" data-reveal>{data.intro}</p>
       </div>
     </section>
+
+    {
+      glance.length > 0 && (
+        <section class="wrap cs__glance" aria-labelledby="cs-glance">
+          <h2 id="cs-glance" class="label label--caps">
+            <Asterisk />
+            At a glance
+          </h2>
+          <dl class="cs__glance-list">
+            {glance.map((g) => (
+              <div class:list={['card', g.result && 'cs__glance-result', isTodo(g.value) && 'is-todo']}>
+                <dt class="label label--caps label--muted">{g.label}</dt>
+                <dd>{g.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )
+    }
 
     <section class="wrap cs__chapters" aria-label="Project story">
       {
@@ -243,6 +272,44 @@ const schema = [
   .cs__summary {
     margin-top: 18px;
     max-width: 40ch;
+  }
+  .cs__glance {
+    display: grid;
+    gap: 16px;
+    margin-bottom: clamp(32px, 4vw, 64px);
+  }
+  .cs__glance-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .cs__glance-list > div {
+    padding: 18px 20px;
+  }
+  .cs__glance-list dd {
+    margin-top: 8px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .cs__glance-result {
+    background: var(--lime);
+    color: var(--ink);
+    border-color: transparent;
+  }
+  .cs__glance-result dt {
+    color: var(--ink) !important;
+  }
+  .cs__glance-result dd {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+  .is-todo {
+    outline: 1px dashed var(--line-strong);
+  }
+  @media (max-width: 900px) {
+    .cs__glance-list {
+      grid-template-columns: 1fr;
+    }
   }
   .cs__facts {
     margin-top: clamp(28px, 3vw, 44px);

@@ -99,7 +99,7 @@ const schema = [website(), faqPage(faqs)];
 <Base
   intro
   rawTitle
-  title="THE PUBLIC FICTION: Brand Agency for Social Media, Reels & Video"
+  title="The Public Fiction: Brand Agency for Social Media, Reels & Video"
   description={site.description}
   schema={schema}
 >
@@ -129,17 +129,23 @@ const schema = [website(), faqPage(faqs)];
       }
     </div>
 
-    <a class="hero__scroll label label--caps" href="#about">[ Scroll ]</a>
+    <a class="hero__scroll label label--caps" href="#about" aria-label="Scroll to the introduction">[ Scroll ]</a>
   </section>
 
-  <Ticker items={tickerItems} variant="white" speed={38} />
+  <Ticker items={tickerItems} variant="white" speed={38} label="What we do" />
 
   <!-- INTRO ------------------------------------------------------------ -->
   <section class="section intro theme-dark" id="about" aria-labelledby="intro-title">
     <div class="wrap intro__in">
-      <SplitHeading id="intro-title" class="mega lime intro__title" lines={['Just an intro']} />
+      {/*
+        Intro heading options (replacing the placeholder "Just an intro"):
+          1. "Hello, we’re the plot twist."  ← in use: plays on "Fiction", confident, sets up the story.
+          2. "The short version."             dry nod to the short paragraph that follows.
+          3. "Brands, made public."           plays on the name; echoes the Studio page.
+      */}
+      <SplitHeading id="intro-title" class="mega lime intro__title" lines={['Hello, we’re', 'the plot twist.']} />
       <p class="intro__copy" data-reveal>
-        THE PUBLIC FICTION is an independent creative and brand agency. We build brands, run social media marketing,
+        The Public Fiction is an independent creative and brand agency. We build brands, run social media marketing,
         produce Reels, photography and film, and create campaigns that make people stop, look and remember.
       </p>
       <div data-reveal style="--d:120"><a class="intro__cta" href="/contact/">Let’s talk</a></div>
@@ -185,7 +191,7 @@ const schema = [website(), faqPage(faqs)];
     </div>
   </section>
 
-  <Ticker items={['Discover', 'Think', 'Create', 'Launch', 'Evolve']} variant="ink" reverse speed={26} tilt={1.5} />
+  <Ticker items={['Discover', 'Think', 'Create', 'Launch', 'Evolve']} variant="ink" reverse speed={26} tilt={1.5} label="How we work, in five stages" />
 
   <!-- APPROACH --------------------------------------------------------- -->
   <section class="section approach" aria-labelledby="approach-title">
@@ -693,7 +699,7 @@ const schema = [website(), faqPage(faqs)];
       rt = window.setTimeout(() => {
         if (!live) return;
         buildWalls();
-        const { left, right, top, bottom } = area();
+        const { left, right, bottom } = area();
         for (const t of things) {
           const rad = Math.max(t.w, t.h) * 0.42;
           Body.setPosition(t.body, {

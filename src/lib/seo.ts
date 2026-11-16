@@ -4,6 +4,7 @@
  */
 import { site } from '@/config/site';
 import { services } from '@/data/services';
+import { realCity } from '@/data/real-content';
 
 const abs = (path: string) => new URL(path, site.url).href;
 
@@ -52,7 +53,7 @@ export function organization() {
     slogan: site.tagline,
     email: site.contact.email,
     ...(site.contact.phone ? { telephone: site.contact.phone } : {}),
-    ...(site.contact.location ? { areaServed: site.contact.location } : {}),
+    ...(realCity() ? { areaServed: realCity() } : {}),
     logo: abs('/favicon.svg'),
     image: abs(site.ogImage),
     knowsAbout: expertise,
@@ -110,7 +111,7 @@ export function service(s: (typeof services)[number], description: string, image
     description,
     url: abs(`/services/${s.slug}/`),
     provider: { '@id': orgId },
-    ...(site.contact.location ? { areaServed: site.contact.location } : {}),
+    ...(realCity() ? { areaServed: realCity() } : {}),
     ...(image ? { image } : {}),
     hasOfferCatalog: {
       '@type': 'OfferCatalog',

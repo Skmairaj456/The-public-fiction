@@ -83,15 +83,15 @@ export const serviceSeo: Record<string, ServiceSeo> = {
     ],
   },
   'photography-film': {
-    title: 'Photography & Video Production: Brand Films, Reels & Shoots',
+    title: 'Photography & Video Production: Brand Films & Shoots',
     description:
-      'Commercial and product photography, brand films, promotional videos, Reels and short-form content, plus event photography and videography.',
+      'Commercial and product photography, fashion and lifestyle shoots, brand films, corporate and promotional videos, plus event photography and videography.',
     answer:
-      'Photography and video production is creating the images and films a brand uses to tell its story. It covers commercial and product photography, fashion and lifestyle shoots, corporate and brand films, promotional videos, Reels and short-form content, and event photography and videography.',
+      'Photography and video production is creating the images and films a brand uses to tell its story. It covers commercial and product photography, fashion and lifestyle shoots, corporate and brand films, promotional videos, and event photography and videography. Reels and short-form video sit with Social Media Marketing.',
     faqs: [
       {
         q: 'What kinds of photography and video do you produce?',
-        a: 'Commercial and product photography, fashion and lifestyle shoots, corporate and brand films, promotional videos, Reels and short-form content, and event photography and videography.',
+        a: 'Commercial and product photography, fashion and lifestyle shoots, corporate and brand films, promotional videos, and event photography and videography. Reels and short-form video are part of our social media marketing.',
       },
       {
         q: 'Do you handle editing and post-production?',

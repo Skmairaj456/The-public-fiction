@@ -2,16 +2,21 @@
 /**
  * PLAY [frame] REEL — the frame between the two words grows to fill the
  * screen as the section scrolls past, cycling through a sequence of stills.
- * The pill toggles the sequence (play / pause).
+ * A small corner button pauses the slideshow (anything that moves by itself
+ * needs one). A "Play reel" button opening the showreel in a modal appears
+ * only when src/data/real-content.ts → showreel.showReel is true and a video
+ * is set; otherwise there is no dead control.
  */
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import { showreel } from '@/data/real-content';
 
 interface Props {
   frames: { src: ImageMetadata; alt: string }[];
   caption?: string;
 }
 const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
+const hasReel = showreel.showReel && Boolean(showreel.src);
 ---
 
 <section class="reel theme-dark" aria-label="Reel" data-reel>
@@ -29,15 +34,45 @@ const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
           </div>
         ))
       }
-      <button class="pill reel__btn" type="button" aria-pressed="true" data-reel-toggle>
-        <span data-reel-label>Pause</span>
-      </button>
+      {
+        hasReel && (
+          <button class="pill reel__btn" type="button" aria-haspopup="dialog" aria-controls="showreel-dialog" data-reel-open>
+            <span class="reel__play" aria-hidden="true" />
+            Play reel
+          </button>
+        )
+      }
       <p class="reel__cap label label--caps">{caption}</p>
-      <p class="reel__count label" aria-hidden="true"><span data-reel-n>01</span> / {String(frames.length).padStart(2, '0')}</p>
+      <div class="reel__count label">
+        <button class="reel__toggle" type="button" aria-label="Pause slideshow" data-reel-toggle>
+          <span class="reel__icon" aria-hidden="true" data-reel-icon />
+          <span data-reel-label>Pause</span>
+        </button>
+        <span aria-hidden="true"><span data-reel-n>01</span> / {String(frames.length).padStart(2, '0')}</span>
+      </div>
     </div>
 
     <p class="reel__hint label label--caps label--muted" aria-hidden="true">[ Scroll ]</p>
   </div>
+  {
+    hasReel && (
+      <dialog class="reel__dialog" id="showreel-dialog" aria-labelledby="showreel-title" data-reel-dialog>
+        <div class="reel__dialog-in">
+          <div class="reel__dialog-bar">
+            <h2 id="showreel-title" class="label label--caps">
+              {showreel.title}
+            </h2>
+            <button type="button" class="reel__close" aria-label="Close showreel" data-reel-close>
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <video src={showreel.src} poster={showreel.poster || undefined} controls playsinline preload="none" data-reel-video>
+            <a href={showreel.src}>Download the showreel</a>
+          </video>
+        </div>
+      </dialog>
+    )
+  }
 </section>
 
 <style>
@@ -106,6 +141,97 @@ const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
   }
   .reel__btn:hover {
     transform: translate(-50%, -50%) scale(1.06);
+  }
+  .reel__play {
+    width: 0;
+    height: 0;
+    border-left: 11px solid currentColor;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    margin-right: 4px;
+  }
+  .reel__count {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .reel__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(14, 15, 17, 0.55);
+    color: var(--white);
+    font: inherit;
+    font-weight: 700;
+    text-shadow: none;
+    backdrop-filter: blur(6px);
+    transition: background 0.3s;
+  }
+  .reel__toggle:hover {
+    background: rgba(14, 15, 17, 0.8);
+  }
+  .reel__toggle:focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
+  }
+  .reel__icon {
+    position: relative;
+    width: 10px;
+    height: 12px;
+    border-left: 3px solid currentColor;
+    border-right: 3px solid currentColor;
+  }
+  .reel__toggle[data-state='paused'] .reel__icon {
+    width: 0;
+    border-right: 0;
+    border-left: 10px solid currentColor;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+  }
+  .reel__dialog {
+    width: min(92vw, 1280px);
+    max-height: 92vh;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .reel__dialog::backdrop {
+    background: rgba(14, 15, 17, 0.85);
+  }
+  .reel__dialog-in {
+    display: grid;
+  }
+  .reel__dialog-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 10px 10px 20px;
+  }
+  .reel__close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 26px;
+    line-height: 1;
+  }
+  .reel__close:focus-visible {
+    outline: 2px solid var(--paper);
+    outline-offset: 2px;
+  }
+  .reel__dialog video {
+    display: block;
+    width: 100%;
+    max-height: calc(92vh - 64px);
+    background: #000;
   }
   .reel__cap,
   .reel__count {
@@ -227,12 +353,55 @@ const { frames, caption = 'Strategy · Story · Production' } = Astro.props;
     };
     const set = (on: boolean) => {
       playing = on;
-      toggle.setAttribute('aria-pressed', String(on));
       label.textContent = on ? 'Pause' : 'Play';
+      toggle.setAttribute('aria-label', on ? 'Pause slideshow' : 'Play slideshow');
+      toggle.dataset.state = on ? 'playing' : 'paused';
       on ? start() : clearInterval(timer);
     };
     toggle.addEventListener('click', () => set(!playing));
     set(playing);
+
+    // Showreel modal: a native <dialog> opened as modal keeps focus inside it
+    // and closes on Esc; the video pauses and focus returns to the button.
+    const opener = section.querySelector<HTMLButtonElement>('[data-reel-open]');
+    const dialog = section.querySelector<HTMLDialogElement>('[data-reel-dialog]');
+    if (opener && dialog) {
+      const video = dialog.querySelector<HTMLVideoElement>('[data-reel-video]');
+      const close = dialog.querySelector<HTMLButtonElement>('[data-reel-close]')!;
+      let wasPlaying = false;
+      opener.addEventListener('click', () => {
+        wasPlaying = playing;
+        set(false);
+        dialog.showModal();
+        close.focus();
+        video?.play().catch(() => {});
+      });
+      close.addEventListener('click', () => dialog.close());
+      // Click on the dark backdrop closes too.
+      dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+      dialog.addEventListener('close', () => {
+        video?.pause();
+        opener.focus();
+        if (wasPlaying && !reduce) set(true);
+      });
+      // Keep Tab inside the dialog (browsers that let focus escape to the page).
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+        // Only what can actually take focus (the link inside <video> is a no-video fallback).
+        const els = Array.from(dialog.querySelectorAll<HTMLElement>('button, video[controls]'));
+        const first = els[0];
+        const last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+    }
 
     if (reduce) return;
 

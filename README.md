@@ -23,10 +23,10 @@ Deploy `dist/` to any static host (Netlify, Vercel, Cloudflare Pages, S3, …).
 | Connect the enquiry form | see **Contact form** below |
 | Replace the placeholder projects with real work | `src/content/work/` |
 | Replace placeholder photography | `src/assets/img/` (Unsplash IDs in `scripts/placeholder-images.txt`) |
-| Add approved clients / genuine testimonials | `src/data/studio.ts` |
+| **Fill in every TODO:** client logos, testimonials, case-study facts, starting prices, team, location, showreel | `src/data/real-content.ts` (placeholders show in `npm run dev` and stay hidden on the live site) |
 | Have the privacy policy and terms reviewed | `src/pages/privacy.astro`, `src/pages/terms.astro` |
 | Regenerate the share image after changing the hero | `npm run brand-assets` |
-| City or area you serve (turns on local search signals) | `src/config/site.ts → contact.location` |
+| City or area you serve (also turns on local search signals) | `src/data/real-content.ts → studioLocation` |
 | Submit the sitemap to Google Search Console and Bing Webmaster Tools | `/sitemap-index.xml` |
 
 ## SEO and AI search
@@ -47,7 +47,8 @@ All business-specific content is kept out of the components.
 
 - `src/config/site.ts` — brand name, tagline, description, contact details, social links, form settings, nav, budget and timeline options.
 - `src/data/services.ts` — the seven service categories (title, line, description, items, image).
-- `src/data/studio.ts` — the five-step process, the approach list, **clients** and **testimonials**.
+- `src/data/studio.ts` — the five-step process, the approach list and the FAQs.
+- `src/data/real-content.ts` — **everything only you can supply**: client logos, testimonials, case-study facts, starting prices, the team, the location and the showreel switch. Anything still marked `TODO` or `R__` shows in local previews and is hidden on the live site.
 - `src/content/work/*.md` — one file per portfolio project. The file name becomes the URL (`/work/<file-name>/`).
 - `src/content/journal/*.md` — one file per article. Set `draft: true` to hide it in production.
 

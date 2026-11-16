@@ -9,6 +9,7 @@ import { site, nav } from '@/config/site';
 import { services } from '@/data/services';
 import { serviceSeo } from '@/data/service-seo';
 import { faqs, process } from '@/data/studio';
+import { realCity } from '@/data/real-content';
 
 export const GET: APIRoute = ({ site: base }) => {
   const url = (p: string) => new URL(p, base ?? site.url).href;
@@ -41,7 +42,7 @@ export const GET: APIRoute = ({ site: base }) => {
     '',
     `- Email: ${site.contact.email}`,
     `- Project enquiries: ${url('/contact/')}`,
-    ...(site.contact.location ? [`- Location: ${site.contact.location}`] : []),
+    ...(realCity() ? [`- Location: ${realCity()}`] : []),
     '',
   ];
   return new Response(lines.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

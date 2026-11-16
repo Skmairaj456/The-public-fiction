@@ -1,4 +1,11 @@
 ---
+/**
+ * Scrolling marquee of short labels (disciplines, stages).
+ *  - One real list is read by screen readers; the repeated copies that make
+ *    the seamless loop are aria-hidden.
+ *  - With prefers-reduced-motion it becomes a static, wrapped list.
+ *  - Pure CSS: works the same with JavaScript off.
+ */
 import Asterisk from './Asterisk.astro';
 
 interface Props {
@@ -7,32 +14,36 @@ interface Props {
   variant?: 'lime' | 'ink' | 'white';
   reverse?: boolean;
   tilt?: number;
+  /** What the list is, for screen readers, e.g. "What we do". */
+  label?: string;
   class?: string;
 }
-const { items, speed = 32, variant = 'lime', reverse = false, tilt = 0, class: className = '' } = Astro.props;
-// Two identical halves make a seamless -50% loop.
-const loop = [...items, ...items, ...items, ...items];
+const { items, speed = 32, variant = 'lime', reverse = false, tilt = 0, label, class: className = '' } = Astro.props;
+// Four identical groups: the track scrolls by half its width for a seamless loop.
+const copies = [0, 1, 2, 3];
 ---
 
 <div class="tk-wrap">
-<div
-  class:list={['marquee', 'tk', `tk--${variant}`, reverse && 'marquee--reverse', className]}
-  style={`--marquee-speed:${speed}s;--tilt:${tilt}deg`}
-  aria-hidden="true"
->
-  <div class="marquee__track">
-    {
-      loop.map((item) => (
-        <span class="tk__item">
-          {item}
-          <Asterisk class="tk__ast" />
-        </span>
-      ))
-    }
+  <div
+    class:list={['marquee', 'tk', `tk--${variant}`, reverse && 'marquee--reverse', className]}
+    style={`--marquee-speed:${speed}s;--tilt:${tilt}deg`}
+  >
+    <div class="marquee__track">
+      {
+        copies.map((n) => (
+          <ul class:list={['tk__group', n > 0 && 'tk__dup']} aria-hidden={n > 0 ? 'true' : undefined} aria-label={n === 0 ? label : undefined}>
+            {items.map((item) => (
+              <li class="tk__item">
+                {item}
+                <Asterisk class="tk__ast" />
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+    </div>
   </div>
 </div>
-</div>
-<p class="sr-only">{items.join(', ')}</p>
 
 <style>
   .tk-wrap {
@@ -48,6 +59,10 @@ const loop = [...items, ...items, ...items, ...items];
     padding-block: clamp(10px, 1.2vw, 16px);
     transform: rotate(var(--tilt));
     margin-inline: -3vw;
+  }
+  .tk__group {
+    display: inline-flex;
+    flex: none;
   }
   .tk--lime {
     background: var(--lime);
@@ -82,5 +97,30 @@ const loop = [...items, ...items, ...items, ...items];
   }
   .tk--ink :global(.tk__ast) {
     color: var(--lime);
+  }
+
+  /* Reduced motion: no scrolling, just the list once, wrapped and centred. */
+  @media (prefers-reduced-motion: reduce) {
+    .tk {
+      transform: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+      white-space: normal;
+    }
+    .tk .marquee__track {
+      display: block;
+      animation: none !important;
+      transform: none !important;
+    }
+    .tk__group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 10px;
+      width: 100%;
+    }
+    .tk__dup {
+      display: none;
+    }
   }
 </style>

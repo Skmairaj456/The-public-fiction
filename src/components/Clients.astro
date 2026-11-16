@@ -1,13 +1,17 @@
 ---
 /**
- * Clients & collaborators. Renders the names/logos listed in src/data/studio.ts.
- * With no clients listed it shows the positioning statement only.
+ * Clients & collaborators: the positioning line, then a strip of 4–8 client
+ * logos (greyscale, colour on hover). Logos come from
+ * src/data/real-content.ts → clientLogos. Placeholder entries show in local
+ * previews only; on the live site the strip appears once real logos are added.
  */
 import { Image } from 'astro:assets';
-import { clients } from '@/data/studio';
+import { clientLogos, realOnly, isTodo } from '@/data/real-content';
 import SectionHead from './SectionHead.astro';
 import Button from './Button.astro';
 import Sticker from './Sticker.astro';
+
+const logos = realOnly(clientLogos, (c) => c.name).slice(0, 8);
 ---
 
 <section class="section clients" aria-labelledby="clients-title">
@@ -17,24 +21,20 @@ import Sticker from './Sticker.astro';
       <span class="lm" aria-hidden="true"><span class="mega mega--m" style="--i:0">Good people.</span></span>
       <span class="lm" aria-hidden="true"><span class="mega mega--m clients__outline" style="--i:1">Ambitious ideas.</span></span>
     </h2>
-    <div class="clients__row">
-      <p class="lede" data-reveal>
-        We work best with founders, marketers and makers who would rather be remembered than merely seen — and who are
-        happy to be asked a difficult question or two.
-      </p>
-      {clients.length === 0 && <div data-reveal style="--d:120"><Button href="/contact/">Become one of them</Button></div>}
-    </div>
-    <Sticker name="heart" class="clients__stk" data-pop />
 
     {
-      clients.length > 0 && (
-        <ul class="clients__grid" aria-label="Selected clients and collaborators">
-          {clients.map((c, i) => {
-            const inner = c.logo ? <Image src={c.logo} alt={c.name} class="clients__logo" width={240} /> : <span class="h-s">{c.name}</span>;
+      logos.length > 0 && (
+        <ul class="clients__strip" aria-label="Selected clients">
+          {logos.map((c, i) => {
+            const inner = c.logo ? (
+              <Image src={c.logo} alt={c.name} class="clients__logo" width={240} />
+            ) : (
+              <span class="clients__name">{c.name}</span>
+            );
             return (
-              <li class="clients__cell" data-reveal style={`--d:${(i % 4) * 70}`}>
+              <li class:list={['clients__cell', isTodo(c.name) && 'is-todo']} data-reveal style={`--d:${(i % 8) * 60}`}>
                 {c.url ? (
-                  <a href={c.url} target="_blank" rel="noopener noreferrer">
+                  <a href={c.url} target="_blank" rel="noopener noreferrer" aria-label={`${c.name} (opens in a new tab)`}>
                     {inner}
                   </a>
                 ) : (
@@ -47,14 +47,16 @@ import Sticker from './Sticker.astro';
       )
     }
 
-    {
-      clients.length === 0 && import.meta.env.DEV && (
-        <p class="dev-note">
-          <strong>Editor note (dev only):</strong> no clients listed yet. Add approved clients and logos to
-          <code>src/data/studio.ts → clients</code> and a logo wall appears here automatically.
-        </p>
-      )
-    }
+    <div class="clients__row">
+      <p class="lede" data-reveal>
+        We work best with founders, marketers and makers who would rather be remembered than merely seen — and who are
+        happy to be asked a difficult question or two.
+      </p>
+      <div class="clients__cta" data-reveal style="--d:120">
+        <Button href="/contact/">Become one of them</Button>
+      </div>
+    </div>
+    <Sticker name="heart" class="clients__stk" data-pop />
   </div>
 </section>
 
@@ -72,6 +74,58 @@ import Sticker from './Sticker.astro';
   .clients__outline {
     color: transparent;
     -webkit-text-stroke: 2px var(--fg);
+  }
+  /* Logo strip: one row on desktop, wrapping on smaller screens. */
+  .clients__strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: clamp(28px, 3.4vw, 52px);
+  }
+  .clients__cell {
+    display: grid;
+    place-items: center;
+    min-height: clamp(96px, 9vw, 140px);
+    padding: 18px;
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--line);
+    text-align: center;
+  }
+  .clients__cell > a {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 60px;
+  }
+  .clients__cell :global(.clients__logo) {
+    max-height: 48px;
+    width: auto;
+    filter: grayscale(1);
+    opacity: 0.75;
+    transition:
+      filter 0.4s,
+      opacity 0.4s;
+  }
+  .clients__cell:hover :global(.clients__logo),
+  .clients__cell:focus-within :global(.clients__logo) {
+    filter: none;
+    opacity: 1;
+  }
+  .clients__name {
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+  .clients__cell:hover .clients__name {
+    color: var(--fg);
+  }
+  /* Placeholders (local preview only) are clearly marked. */
+  .clients__cell.is-todo {
+    border-style: dashed;
+    border-color: var(--line-strong);
   }
   .clients__row {
     display: flex;
@@ -94,41 +148,15 @@ import Sticker from './Sticker.astro';
   :global(html.js:not(.reduce-motion)) .clients :global(.clients__stk.is-in) {
     animation: bob 4.6s ease-in-out infinite;
   }
-  .clients__grid {
-    margin-top: clamp(36px, 4vw, 64px);
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-  }
-  .clients__cell {
-    display: grid;
-    place-items: center;
-    min-height: clamp(110px, 11vw, 170px);
-    padding: 20px;
-    border-radius: var(--radius);
-    background: var(--card);
-    border: 1px solid var(--line);
-    text-align: center;
-  }
-  .clients__cell :global(.clients__logo) {
-    max-height: 52px;
-    width: auto;
-    filter: grayscale(1);
-    opacity: 0.8;
-    transition: filter 0.4s, opacity 0.4s;
-  }
-  .clients__cell:hover :global(.clients__logo) {
-    filter: none;
-    opacity: 1;
-  }
   @media (max-width: 760px) {
-    .clients__grid {
+    .clients__strip {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .clients :global(.clients__stk) {
       top: auto;
       bottom: -10px;
       right: 4%;
+      width: 64px;
     }
   }
 </style>

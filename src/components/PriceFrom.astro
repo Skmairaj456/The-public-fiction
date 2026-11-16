@@ -1,0 +1,39 @@
+---
+/**
+ * "Starting from R__" for a service, from src/data/real-content.ts →
+ * startingFrom. Hidden on the live site until a real figure is filled in.
+ */
+import { startingFrom, filled, isTodo } from '@/data/real-content';
+
+interface Props {
+  slug: string;
+}
+const value = filled(startingFrom[Astro.props.slug]);
+---
+
+{
+  value && (
+    <p class:list={['price-from', isTodo(value) && 'is-todo']}>
+      Starting from <strong>{value}</strong>
+    </p>
+  )
+}
+
+<style>
+  .price-from {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .price-from strong {
+    font-weight: 800;
+  }
+  .price-from.is-todo {
+    border-style: dashed;
+  }
+</style>

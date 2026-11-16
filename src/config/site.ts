@@ -1,5 +1,5 @@
 /**
- * THE PUBLIC FICTION — central site settings.
+ * The Public Fiction — central site settings.
  *
  * Every business detail that appears on the website lives here.
  * Change a value once and it updates everywhere (header, footer, contact page,
@@ -10,7 +10,7 @@
  */
 
 export const site = {
-  name: 'THE PUBLIC FICTION',
+  name: 'The Public Fiction',
   shortName: 'TPF',
   tagline: 'Making ideas visible. Making brands matter.',
   description:
@@ -33,8 +33,7 @@ export const site = {
      * country code and no "+" (e.g. '447700900000'). Leave empty to hide WhatsApp.
      */
     whatsapp: '' as string,
-    /** Optional. A city or studio address, e.g. 'London'. */
-    location: '' as string,
+    // The studio location lives in src/data/real-content.ts → studioLocation.
   },
 
   /** Leave a URL empty to hide that network everywhere on the site. */
@@ -65,7 +64,7 @@ export const site = {
 
   /** Shown on the legal pages. */
   legal: {
-    entityName: 'THE PUBLIC FICTION',
+    entityName: 'The Public Fiction',
     lastUpdated: '31 October 2026',
   },
 } as const;

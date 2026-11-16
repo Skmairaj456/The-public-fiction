@@ -66,7 +66,7 @@ const journal = defineCollection({
       excerpt: z.string(),
       date: z.coerce.date(),
       topic: z.enum(['Marketing', 'Branding', 'Advertising', 'Behind the Scenes', 'Production', 'Inspiration']),
-      author: z.string().default('THE PUBLIC FICTION'),
+      author: z.string().default('The Public Fiction'),
       cover: image(),
       coverAlt: z.string(),
       draft: z.boolean().default(false),

@@ -69,7 +69,7 @@ export const services: Service[] = [
     line: 'Pictures that carry the brand when no one is reading.',
     description:
       'Commercial stills, brand films and short-form content directed with the same intent as the strategy behind them. Lit properly. Cut with care.',
-    items: ['Commercial photography', 'Product photography', 'Fashion and lifestyle shoots', 'Corporate films', 'Promotional videos', 'Reels and short-form content', 'Event photography and videography'],
+    items: ['Commercial photography', 'Product photography', 'Fashion and lifestyle shoots', 'Corporate films', 'Promotional videos', 'Event photography and videography'],
     image: photographer,
     imageAlt: 'A photographer holding a camera up to her eye at dusk',
   },

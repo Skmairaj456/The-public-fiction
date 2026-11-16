@@ -1,11 +1,12 @@
 /**
- * Approach, clients and testimonials.
+ * Process, approach and FAQs.
  *
- * CLIENTS and TESTIMONIALS are intentionally empty. Only add real clients that
- * have agreed to be listed, and real feedback with the person's permission.
- * Sections with no entries are hidden on the live site automatically.
+ * Clients, testimonials, prices, the team and the location live in
+ * src/data/real-content.ts, the one file to fill in with real content.
  */
-import type { ImageMetadata } from 'astro';
+import { filled, typicalProjectFrom } from './real-content';
+
+const from = filled(typicalProjectFrom);
 
 /** The five-part working process (Section 05). */
 export const process = [
@@ -53,7 +54,7 @@ export const approach = [
 /** Frequently asked questions (FAQ section). Keep answers factual. */
 export const faqs = [
   {
-    q: 'What kind of agency is THE PUBLIC FICTION?',
+    q: 'What kind of agency is The Public Fiction?',
     a: 'An independent creative and brand agency. One team covers brand strategy and identity, marketing and advertising, social media marketing, photography and video production, creative production, events and digital design.',
   },
   {
@@ -77,31 +78,13 @@ export const faqs = [
     a: 'Yes. Some clients come to us for a single shoot or a logo; others for the whole journey from strategy to launch. We shape the team around what the project actually needs.',
   },
   {
-    q: 'How is pricing worked out?',
-    a: 'Every project is scoped individually once we understand the brief. Sharing a budget range in your enquiry helps us suggest the approach that gets the most out of it.',
+    q: 'What does a project cost?',
+    a: from
+      ? `Most projects start from ${from}. Every project is then scoped to the brief, so the number fits the work. Share a budget range in your enquiry and we’ll tell you, honestly, what it buys.`
+      : 'Every project is scoped individually once we understand the brief. Share a budget range in your enquiry and we’ll tell you, honestly, what it buys.',
   },
   {
     q: 'What do you need from me to get started?',
     a: 'A few lines on what you’re making, who it’s for and what success looks like. Existing brand material helps, but it isn’t required — figuring that out is part of the work.',
   },
 ] as const;
-
-export interface Client {
-  name: string;
-  /** Optional logo (import from src/assets). Without one, the name is set in type. */
-  logo?: ImageMetadata;
-  url?: string;
-}
-
-/** Add approved clients and collaborators here. */
-export const clients: Client[] = [];
-
-export interface Testimonial {
-  quote: string;
-  name: string;
-  role: string;
-  company?: string;
-}
-
-/** Add genuine, approved feedback here. */
-export const testimonials: Testimonial[] = [];

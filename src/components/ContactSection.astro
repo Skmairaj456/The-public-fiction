@@ -3,6 +3,7 @@ import { site, socialLinks } from '@/config/site';
 import SectionHead from './SectionHead.astro';
 import ContactForm from './ContactForm.astro';
 import Sticker from './Sticker.astro';
+import { realCity } from '@/data/real-content';
 
 interface Props {
   number?: string;
@@ -10,6 +11,7 @@ interface Props {
   headingLevel?: 'h1' | 'h2';
 }
 const { headingLevel: H = 'h2' } = Astro.props;
+const city = realCity();
 const socials = socialLinks();
 ---
 
@@ -32,7 +34,7 @@ const socials = socialLinks();
         </a>
 
         {
-          (site.contact.phone || site.contact.location || socials.length > 0) && (
+          (site.contact.phone || city || socials.length > 0) && (
             <dl class="contact__card">
               {site.contact.phone && (
                 <div>
@@ -42,10 +44,10 @@ const socials = socialLinks();
                   </dd>
                 </div>
               )}
-              {site.contact.location && (
+              {city && (
                 <div>
                   <dt class="label label--caps label--muted">Studio</dt>
-                  <dd>{site.contact.location}</dd>
+                  <dd>{city}</dd>
                 </div>
               )}
               {socials.length > 0 && (
