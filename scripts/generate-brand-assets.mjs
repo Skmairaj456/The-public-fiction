@@ -17,9 +17,54 @@ const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <g transform="translate(11 11) scale(1.75)"><path d="${AST}" fill="${LIME}"/></g>
 </svg>`;
 
+const png = (size, opts = {}) => {
+  const img = sharp(Buffer.from(favicon), { density: 72 * (size / 64) * 2 }).resize(size, size);
+  return (opts.flatten ? img.flatten({ background: INK }) : img).png().toBuffer();
+};
+
 await writeFile('public/favicon.svg', favicon);
-await sharp(Buffer.from(favicon)).resize(32, 32).png().toFile('public/favicon-32.png');
-await sharp(Buffer.from(favicon)).resize(180, 180).flatten({ background: INK }).png().toFile('public/apple-touch-icon.png');
+await writeFile('public/favicon-32.png', await png(32));
+// Google shows a site icon in search results when one is a multiple of 48px.
+await writeFile('public/favicon-96.png', await png(96));
+await writeFile('public/apple-touch-icon.png', await png(180, { flatten: true }));
+// Android home screen / tabs (referenced by site.webmanifest).
+await writeFile('public/icon-192.png', await png(192));
+await writeFile('public/icon-512.png', await png(512));
+// "Maskable" version: Android may crop icons to a circle, so the mark sits inside a safe zone on a full-bleed square.
+const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="${INK}"/>
+  <g transform="translate(17.6 17.6) scale(1.2)"><path d="${AST}" fill="${LIME}"/></g>
+</svg>`;
+await sharp(Buffer.from(maskable), { density: 72 * 16 }).resize(512, 512).png().toFile('public/icon-maskable-512.png');
+
+// favicon.ico (16, 32 and 48px, stored as PNGs inside the .ico container):
+// browsers and crawlers request /favicon.ico by default.
+const icoSizes = [16, 32, 48];
+const icoImages = await Promise.all(icoSizes.map((s) => png(s)));
+const header = Buffer.alloc(6);
+header.writeUInt16LE(0, 0); // reserved
+header.writeUInt16LE(1, 2); // type: icon
+header.writeUInt16LE(icoSizes.length, 4);
+let offset = 6 + 16 * icoSizes.length;
+const entries = icoSizes.map((s, i) => {
+  const e = Buffer.alloc(16);
+  e.writeUInt8(s, 0); // width
+  e.writeUInt8(s, 1); // height
+  e.writeUInt8(0, 2); // palette
+  e.writeUInt8(0, 3); // reserved
+  e.writeUInt16LE(1, 4); // colour planes
+  e.writeUInt16LE(32, 6); // bits per pixel
+  e.writeUInt32LE(icoImages[i].length, 8);
+  e.writeUInt32LE(offset, 12);
+  offset += icoImages[i].length;
+  return e;
+});
+await writeFile('public/favicon.ico', Buffer.concat([header, ...entries, ...icoImages]));
+
+if (process.argv.includes('--icons')) {
+  console.log('Icons written to /public');
+  process.exit(0);
+}
 
 // Open Graph image: 1200×630 — lime panel with condensed type, photo on the right.
 const W = 1200;
