@@ -35,7 +35,7 @@ const featured = projects.filter((p) => p.data.featured).slice(0, 6);
 const showcase = featured.length ? featured : projects.slice(0, 6);
 const posts = (await getPosts()).slice(0, 3);
 
-const tickerItems = ['Brand strategy', 'Identity', 'Advertising', 'Photography', 'Film', 'Social', 'Events', 'Digital'] as const;
+const tickerItems = ['Brand strategy', 'Identity', 'Advertising', 'Photography', 'Film', 'Social media', 'Events', 'Digital'] as const;
 
 const tunnelWords = [
   'Brand vision',
@@ -45,6 +45,7 @@ const tunnelWords = [
   'Art direction',
   'Commercial photography',
   'Brand film',
+  'Social media marketing',
   'Social content',
   'Paid media',
   'Event coverage',
@@ -170,7 +171,7 @@ const schema = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: si
   <!-- SERVICES --------------------------------------------------------- -->
   <section class="section theme-dark services" id="services" aria-labelledby="services-title">
     <div class="wrap">
-      <SectionHead label="What we do" aside="Six disciplines, one team" />
+      <SectionHead label="What we do" aside="Seven disciplines, one team" />
       <SplitHeading id="services-title" class="stack services__title" lines={['~From the first idea', '>to the final', '>>impression.']} />
       <ServicesShowcase />
     </div>

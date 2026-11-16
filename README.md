@@ -32,7 +32,7 @@ Deploy `dist/` to any static host (Netlify, Vercel, Cloudflare Pages, S3, …).
 All business-specific content is kept out of the components.
 
 - `src/config/site.ts` — brand name, tagline, description, contact details, social links, form settings, nav, budget and timeline options.
-- `src/data/services.ts` — the six service categories (title, line, description, items, image).
+- `src/data/services.ts` — the seven service categories (title, line, description, items, image).
 - `src/data/studio.ts` — the five-step process, the approach list, **clients** and **testimonials**.
 - `src/content/work/*.md` — one file per portfolio project. The file name becomes the URL (`/work/<file-name>/`).
 - `src/content/journal/*.md` — one file per article. Set `draft: true` to hide it in production.

@@ -5,6 +5,7 @@ import photographer from '@/assets/img/photographer-woman.jpg';
 import clapper from '@/assets/img/clapper.jpg';
 import stageMic from '@/assets/img/mic.jpg';
 import uiDesign from '@/assets/img/retro-tech.jpg';
+import ringLight from '@/assets/img/ring-light.jpg';
 
 export interface Service {
   slug: string;
@@ -37,13 +38,33 @@ export const services: Service[] = [
     line: 'Attention is rented. We help you spend it well.',
     description:
       'Campaigns built on a real idea, then planned, produced and placed where your audience actually spends its time — and measured against what you actually need.',
-    items: ['Digital marketing', 'Campaign strategy', 'Social media marketing', 'Paid advertising', 'Content strategy', 'Campaign management', 'Marketing creatives'],
+    items: ['Digital marketing', 'Campaign strategy', 'Media planning', 'Paid advertising', 'Content strategy', 'Campaign management', 'Marketing creatives'],
     image: fashionRed,
     imageAlt: 'A woman in sunglasses striking a playful pose against a yellow wall',
   },
   {
-    slug: 'photography-film',
+    slug: 'social-media-marketing',
     number: '03',
+    title: 'Social Media Marketing',
+    line: 'Show up where people actually look, every single day.',
+    description:
+      'Strategy, content and community for the platforms your audience scrolls. Planned in a calendar, made to stop the thumb, and measured on what it moves, not just on likes.',
+    items: [
+      'Social media strategy',
+      'Content calendars',
+      'Platform management',
+      'Reels and short-form content',
+      'Community management',
+      'Creator and influencer partnerships',
+      'Paid social',
+      'Analytics and reporting',
+    ],
+    image: ringLight,
+    imageAlt: 'A creator filming herself on a phone in front of a ring light',
+  },
+  {
+    slug: 'photography-film',
+    number: '04',
     title: 'Photography & Film',
     line: 'Pictures that carry the brand when no one is reading.',
     description:
@@ -54,7 +75,7 @@ export const services: Service[] = [
   },
   {
     slug: 'creative-production',
-    number: '04',
+    number: '05',
     title: 'Creative Production',
     line: 'Where the idea meets the call sheet.',
     description:
@@ -65,7 +86,7 @@ export const services: Service[] = [
   },
   {
     slug: 'events-experiences',
-    number: '05',
+    number: '06',
     title: 'Events & Experiences',
     line: 'The night ends. The story shouldn’t.',
     description:
@@ -76,7 +97,7 @@ export const services: Service[] = [
   },
   {
     slug: 'digital-design',
-    number: '06',
+    number: '07',
     title: 'Digital & Design',
     line: 'Your brand, working at screen speed.',
     description:
