@@ -315,9 +315,31 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
        ----------------------------------------------------------------------- */
     // (Not in TypeScript's DOM types yet.)
     const ScrollTL = (window as unknown as { ScrollTimeline?: new (o: { source: Element; axis: string }) => AnimationTimeline }).ScrollTimeline;
-    const timeline = ScrollTL ? new ScrollTL({ source: document.documentElement, axis: 'block' }) : null;
+    // ?off=sda forces the scroll-event fallback, for on-device comparison.
+    const timeline =
+      ScrollTL && !/[?&]off=[^&]*\bsda\b/.test(location.search) ? new ScrollTL({ source: document.documentElement, axis: 'block' }) : null;
     const SAMPLES = 300;
     let extraAnims: Animation[] = [];
+    // Live only while the tunnel is on or near the screen: tied to the whole
+    // page's scroll, these ~70 animations would otherwise be updated on every
+    // frame of every scroll, anywhere on the page.
+    let near = false;
+    const gate = () => {
+      for (const a of [...items.map((it) => it.anim), ...extraAnims]) {
+        if (!a) continue;
+        if (near) {
+          if (a.playState !== 'running') a.play();
+        } else if (a.playState !== 'idle') a.cancel();
+      }
+    };
+    if (timeline)
+      new IntersectionObserver(
+        ([e]) => {
+          near = e.isIntersecting;
+          gate();
+        },
+        { rootMargin: '100% 0px' },
+      ).observe(section);
 
     const bake = () => {
       if (!timeline || !ready) return;
@@ -402,6 +424,7 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
       extraAnims.forEach((a) => a.cancel());
       const opts = { timeline, fill: 'both', duration: 'auto', easing: 'linear' } as KeyframeAnimationOptions;
       extraAnims = [hint.animate(hintKf, opts), center.animate(centerKf, opts)];
+      gate();
     };
 
     let bt = 0;

@@ -48,7 +48,7 @@ const { projects } = Astro.props;
 </style>
 
 <script>
-  import { scrollDriven, bake, docTop, onLayout } from '../scripts/scrollDriven';
+  import { docTop, onLayout } from '../scripts/scrollDriven';
 
   if (!document.documentElement.classList.contains('reduce-motion')) {
     document.querySelectorAll<HTMLElement>('[data-stack]').forEach((stack) => {
@@ -81,19 +81,9 @@ const { projects } = Astro.props;
       };
       const scale = (i: number, y: number) => `scale(${(1 - covered(i, y) * 0.07).toFixed(4)})`;
 
-      if (scrollDriven) {
-        // The browser plays the cards' shrink straight off the scroll position.
-        let anims: (Animation | null)[] = cards.map(() => null);
-        onLayout(() => {
-          measure();
-          anims = cards.map((card, i) =>
-            i < items.length - 1 ? bake(card, anims[i], natural[i] - innerHeight, natural[i + 1], (y) => ({ transform: scale(i, y) }), 60) : null,
-          );
-        });
-        return;
-      }
-
-      // Fallback: the same, from scroll events while on screen.
+      // Driven from scroll events on purpose: the shrink is subtle enough that a
+      // frame of lag is invisible, and in phone emulation this measured cheaper than
+      // keeping five scroll-driven animations live on stuck cards.
       let ticking = false;
       const last: string[] = [];
       const render = () => {

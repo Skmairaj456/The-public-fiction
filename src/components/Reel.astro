@@ -21,12 +21,14 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
 
 <section class="reel theme-dark" aria-label="Reel" data-reel>
   <div class="reel__sticky">
+    <div class="reel__bg" aria-hidden="true" data-reel-bg></div>
     <div class="reel__words" aria-hidden="true">
       <span class="mega lime reel__w reel__w--l" data-reel-l>Play</span>
       <span class="mega lime reel__w reel__w--r" data-reel-r>Reel</span>
     </div>
 
     <div class="reel__frame" data-reel-frame>
+      <div class="reel__inner" data-reel-inner>
       {
         frames.map((f, i) => (
           <div class:list={['reel__slide', i === 0 && 'is-on']} data-reel-slide>
@@ -50,7 +52,12 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
         </button>
         <span aria-hidden="true"><span data-reel-n>01</span> / {String(frames.length).padStart(2, '0')}</span>
       </div>
+      </div>
     </div>
+    <span class="reel__corner" aria-hidden="true" data-corner="tl"></span>
+    <span class="reel__corner" aria-hidden="true" data-corner="tr"></span>
+    <span class="reel__corner" aria-hidden="true" data-corner="bl"></span>
+    <span class="reel__corner" aria-hidden="true" data-corner="br"></span>
 
     <p class="reel__hint label label--caps label--muted" aria-hidden="true">[ Scroll ]</p>
   </div>
@@ -250,6 +257,14 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
   .reel__hint {
     display: none;
   }
+  /* Only the scroll-driven version below uses these. */
+  .reel__inner {
+    display: contents;
+  }
+  .reel__bg,
+  .reel__corner {
+    display: none;
+  }
 
   /* Scroll-driven version.
      The section tucks one screen up under the end of the word tunnel, so its
@@ -306,6 +321,69 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
   :global(html.js:not(.reduce-motion)) .reel__count {
     translate: calc(-1 * var(--ix, 0px)) calc(-1 * var(--iy, 0px));
   }
+  /* Scroll-driven version (.is-sd, set by the script where the browser can
+     play animations off the scroll position). Everything here moves by
+     transform and opacity only, which the GPU animates in step with the
+     scroll: the frame grows by scaling (its contents scaled back so the photo
+     stays true), rounded corners are four ink corner pieces that ride its
+     edges, and the stage fades in an ink backdrop instead of switching its
+     background. */
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__sticky > * {
+    visibility: visible;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    opacity: 0;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__frame {
+    clip-path: none;
+    overflow: hidden;
+    transform-origin: 50% 50%;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__inner {
+    display: block;
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__cap,
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__count {
+    translate: none;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__words,
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__hint {
+    opacity: 0;
+  }
+  :global(html.js:not(.reduce-motion)) .reel.is-sd .reel__corner {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    transform-origin: 0 0;
+    opacity: 0;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+  .reel__corner[data-corner='tl'] {
+    background: radial-gradient(circle at 100% 100%, transparent 15.5px, var(--ink) 16px);
+  }
+  .reel__corner[data-corner='tr'] {
+    background: radial-gradient(circle at 0% 100%, transparent 15.5px, var(--ink) 16px);
+  }
+  .reel__corner[data-corner='bl'] {
+    background: radial-gradient(circle at 100% 0%, transparent 15.5px, var(--ink) 16px);
+  }
+  .reel__corner[data-corner='br'] {
+    background: radial-gradient(circle at 0% 0%, transparent 15.5px, var(--ink) 16px);
+  }
   :global(html.js:not(.reduce-motion)) .reel__hint {
     display: block;
     position: absolute;
@@ -324,7 +402,7 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
 </style>
 
 <script>
-  import { scrollDriven, bake, bakeStep, docTop, onLayout } from '../scripts/scrollDriven';
+  import { scrollDriven, bake, bakeStep, docTop, onLayout, whileNear } from '../scripts/scrollDriven';
 
   const reduce = document.documentElement.classList.contains('reduce-motion');
 
@@ -432,15 +510,19 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
       const w0 = small ? 0.58 : 0.18;
       const h0 = small ? 0.34 : 0.56;
       const sc = 0.02 + 0.98 * e;
-      const w = lerp(w0 * W, W, t) * sc;
-      const h = lerp(h0 * H, H, t) * sc;
+      const w = Math.max(1, lerp(w0 * W, W, t) * sc);
+      const h = Math.max(1, lerp(h0 * H, H, t) * sc);
       const push = t * (small ? H * 0.4 : W * 0.32);
       return {
-        clip: `inset(${((H - h) / 2).toFixed(1)}px ${((W - w) / 2).toFixed(1)}px round ${lerp(16, 0, t).toFixed(1)}px)`,
+        ix: (W - w) / 2,
+        iy: (H - h) / 2,
+        w,
+        h,
+        r: Math.min(lerp(16, 0, t), w / 2, h / 2),
         wl: small ? `translate3d(0, ${(-push).toFixed(1)}px, 0)` : `translate3d(${(-push).toFixed(1)}px, 0, 0)`,
         wr: small ? `translate3d(0, ${push.toFixed(1)}px, 0)` : `translate3d(${push.toFixed(1)}px, 0, 0)`,
-        wo: (1 - t).toFixed(3),
-        e: e.toFixed(3),
+        wo: 1 - t,
+        e,
         ws: `scale(${(0.4 + 0.6 * e).toFixed(4)})`,
         // Pinned once the stage reaches the top (the tunnel has just let go).
         pinned: rectTop <= 0.5 && rectTop + height > H * 0.5,
@@ -448,26 +530,58 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
     };
 
     if (scrollDriven) {
-      // The browser plays the scene straight off the scroll position.
-      const sticky = section.querySelector<HTMLElement>('.reel__sticky')!;
-      const ink = getComputedStyle(section).getPropertyValue('--ink').trim() || '#0e0f11';
+      // The browser plays the scene straight off the scroll position, using
+      // transform and opacity only (see the .is-sd styles).
+      section.classList.add('is-sd');
+      const bg = section.querySelector<HTMLElement>('[data-reel-bg]')!;
+      const inner = section.querySelector<HTMLElement>('[data-reel-inner]')!;
+      const cap = section.querySelector<HTMLElement>('.reel__cap')!;
+      const counter = section.querySelector<HTMLElement>('.reel__count')!;
+      const corners = Array.from(section.querySelectorAll<HTMLElement>('[data-corner]'));
+      const f = (n: number) => n.toFixed(2);
+      const gated = (y: number, v: number) => (scene(y).pinned ? v : 0).toFixed(3);
       let a: Record<string, Animation | null> = {};
+      const gate = whileNear(section, () => Object.values(a));
       onLayout(() => {
         measure();
-        const y0 = top;
-        const y1 = top + Math.max(1, height - H);
+        // From just before the pin to just after it lets go.
+        const y0 = top - 2;
+        const y1 = top + height - H * 0.5 + 2;
+        const N = 160;
         a = {
-          frame: bake(frame, a.frame ?? null, y0, y1, (y) => ({ clipPath: scene(y).clip })),
-          wl: bake(wl, a.wl ?? null, y0, y1, (y) => ({ transform: scene(y).wl, opacity: scene(y).wo })),
-          wr: bake(wr, a.wr ?? null, y0, y1, (y) => ({ transform: scene(y).wr, opacity: scene(y).wo })),
-          words: bake(words, a.words ?? null, y0, y1, (y) => ({ opacity: scene(y).e, transform: scene(y).ws })),
-          hint: bake(hint, a.hint ?? null, y0, y1, (y) => ({ opacity: scene(y).e })),
-          // The stage only shows while pinned; until then it is see-through.
-          bg: bakeStep(sticky, a.bg ?? null, top - 0.5, top + height - H * 0.5, { backgroundColor: 'transparent' }, { backgroundColor: ink }),
-          v1: bakeStep(words, a.v1 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
-          v2: bakeStep(frame, a.v2 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
-          v3: bakeStep(hint, a.v3 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
+          bg: bakeStep(bg, a.bg ?? null, top - 0.5, top + height - H * 0.5, { opacity: '0' }, { opacity: '1' }),
+          frame: bake(frame, a.frame ?? null, y0, y1, (y) => {
+            const s = scene(y);
+            return { transform: `scale(${(s.w / W).toFixed(5)}, ${(s.h / H).toFixed(5)})`, opacity: s.pinned ? '1' : '0' };
+          }, N),
+          inner: bake(inner, a.inner ?? null, y0, y1, (y) => {
+            const s = scene(y);
+            return { transform: `scale(${(W / s.w).toFixed(5)}, ${(H / s.h).toFixed(5)})` };
+          }, N),
+          cap: bake(cap, a.cap ?? null, y0, y1, (y) => {
+            const s = scene(y);
+            return { transform: `translate(${f(s.ix)}px, ${f(-s.iy)}px)` };
+          }, N),
+          counter: bake(counter, a.counter ?? null, y0, y1, (y) => {
+            const s = scene(y);
+            return { transform: `translate(${f(-s.ix)}px, ${f(-s.iy)}px)` };
+          }, N),
+          words: bake(words, a.words ?? null, y0, y1, (y) => ({ opacity: gated(y, scene(y).e), transform: scene(y).ws }), N),
+          wl: bake(wl, a.wl ?? null, y0, y1, (y) => ({ transform: scene(y).wl, opacity: scene(y).wo.toFixed(3) }), N),
+          wr: bake(wr, a.wr ?? null, y0, y1, (y) => ({ transform: scene(y).wr, opacity: scene(y).wo.toFixed(3) }), N),
+          hint: bake(hint, a.hint ?? null, y0, y1, (y) => ({ opacity: gated(y, scene(y).e) }), N),
         };
+        // Rounded corners: an ink corner piece rides each corner of the frame.
+        corners.forEach((c) => {
+          const k = c.dataset.corner!;
+          a[k] = bake(c, a[k] ?? null, y0, y1, (y) => {
+            const s = scene(y);
+            const x = k.endsWith('l') ? s.ix : W - s.ix - s.r;
+            const yy = k.startsWith('t') ? s.iy : H - s.iy - s.r;
+            return { transform: `translate(${f(x)}px, ${f(yy)}px) scale(${(s.r / 16).toFixed(4)})`, opacity: s.pinned ? '1' : '0' };
+          }, N);
+        });
+        gate();
       });
       return;
     }
@@ -482,11 +596,14 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
         pinned = s.pinned;
         section.classList.toggle('is-pinned', pinned);
       }
-      frame.style.clipPath = s.clip;
+      // The clip mask and the caption/counter (which ride its corners) read these.
+      frame.style.setProperty('--ix', `${s.ix.toFixed(1)}px`);
+      frame.style.setProperty('--iy', `${s.iy.toFixed(1)}px`);
+      frame.style.setProperty('--fr', `${s.r.toFixed(1)}px`);
       wl.style.transform = s.wl;
       wr.style.transform = s.wr;
-      wl.style.opacity = wr.style.opacity = s.wo;
-      words.style.opacity = hint.style.opacity = s.e;
+      wl.style.opacity = wr.style.opacity = s.wo.toFixed(3);
+      words.style.opacity = hint.style.opacity = s.e.toFixed(3);
       words.style.transform = s.ws;
     };
     const req = () => {

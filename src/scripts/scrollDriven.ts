@@ -18,7 +18,8 @@ type Props = Record<string, string>;
 const TL = (window as unknown as { ScrollTimeline?: new (o: { source: Element; axis: string }) => AnimationTimeline })
   .ScrollTimeline;
 
-export const scrollDriven = Boolean(TL);
+// ?off=sda (see perfProbe.ts) forces the scroll-event fallback, for comparing.
+export const scrollDriven = Boolean(TL) && !/[?&]off=[^&]*\bsda\b/.test(location.search);
 
 let timeline: AnimationTimeline | null = null;
 const pageTimeline = () => (TL ? (timeline ??= new TL({ source: document.documentElement, axis: 'block' })) : null);
@@ -77,6 +78,33 @@ export function bakeStep(el: Element, prev: Animation | null, y0: number, y1: nu
 }
 
 /**
+ * Keep a section's scroll-driven animations live only while it is on or near
+ * the screen. They are tied to the whole page's scroll, so otherwise the
+ * browser would update every one of them on every frame of every scroll,
+ * anywhere on the page. Returns a function to call after (re)baking.
+ */
+export function whileNear(target: Element, anims: () => (Animation | null | undefined)[]) {
+  let near = false;
+  const apply = () => {
+    for (const a of anims()) {
+      if (!a) continue;
+      if (near) {
+        if (a.playState !== 'running') a.play();
+      } else if (a.playState !== 'idle') a.cancel();
+    }
+  };
+  // A screen's height of margin either side: live well before it shows.
+  new IntersectionObserver(
+    ([e]) => {
+      near = e.isIntersecting;
+      apply();
+    },
+    { rootMargin: '100% 0px' },
+  ).observe(target);
+  return apply;
+}
+
+/**
  * Run `cb` once now and again (debounced) whenever the page's layout may have
  * moved: the page resized or its content changed height.
  */
@@ -87,7 +115,15 @@ export function onLayout(cb: () => void) {
     t = window.setTimeout(cb, 150);
   };
   new ResizeObserver(run).observe(document.body);
-  addEventListener('resize', run);
+  // Phones resize the window whenever the toolbar shows or hides, i.e. on
+  // every change of scroll direction. Rebuilding then would hitch mid-swipe,
+  // so only a real width change (rotation, desktop resize) counts.
+  let width = innerWidth;
+  addEventListener('resize', () => {
+    if (innerWidth === width) return;
+    width = innerWidth;
+    run();
+  });
   document.fonts?.ready.then(run);
   cb();
 }

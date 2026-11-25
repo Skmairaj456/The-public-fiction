@@ -168,7 +168,7 @@ const { word = 'Experience', facts } = Astro.props;
 </style>
 
 <script>
-  import { scrollDriven, bake, docTop, onLayout } from '../scripts/scrollDriven';
+  import { scrollDriven, bake, docTop, onLayout, whileNear } from '../scripts/scrollDriven';
 
   if (!document.documentElement.classList.contains('reduce-motion')) {
     document.querySelectorAll<HTMLElement>('[data-xp]').forEach((section) => {
@@ -227,6 +227,7 @@ const { word = 'Experience', facts } = Astro.props;
       if (scrollDriven) {
         // The browser plays the scene straight off the scroll position.
         let anims: (Animation | null)[] = [null, null, null, null];
+        const gate = whileNear(section, () => anims);
         onLayout(() => {
           measure();
           const y0 = top;
@@ -240,12 +241,14 @@ const { word = 'Experience', facts } = Astro.props;
               const s = scene(y);
               return { transform: `translateY(${s.dy.toFixed(2)}vmax) scale(${s.ds.toFixed(4)})` };
             }),
-            bake(word, anims[2], y0, y1, (y) => ({ translate: `0 calc(-50% - ${scene(y).lift.toFixed(1)}px)` })),
+            // transform (GPU-animated), on top of the CSS translate that centres it.
+            bake(word, anims[2], y0, y1, (y) => ({ transform: `translateY(${(-scene(y).lift).toFixed(1)}px)` })),
             bake(facts, anims[3], y0, y1, (y) => {
               const f = scene(y).f;
               return { opacity: f.toFixed(3), transform: `translateY(${((1 - f) * 30).toFixed(1)}px)` };
             }),
           ];
+          gate();
         });
         // The only script left on scroll: start the count once (no layout reads).
         const check = () => {

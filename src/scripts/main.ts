@@ -8,6 +8,9 @@ const INTRO_MS = 1500;
 /* ---------------------------------------------------------------------------
    Smooth scroll (skipped for reduced motion and touch-first devices keep native feel)
    --------------------------------------------------------------------------- */
+// On-device scroll diagnostics, only with ?perf in the address.
+if (/[?&]perf\b/.test(location.search)) import('./perfProbe');
+
 let lenis: Lenis | null = null;
 // Desktop only. Lenis doesn't smooth touch scrolling, yet it registers
 // non-passive touchstart/touchmove listeners on the window, which make iOS

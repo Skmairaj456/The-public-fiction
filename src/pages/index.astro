@@ -571,8 +571,25 @@ const schema = [website(), faqPage(faqs)];
     // Pause the simulation while the hero is off screen: it would otherwise
     // keep stepping collisions behind the scroll animations further down.
     let onScreen = true;
+    // Also pause while the page is being scrolled (unless a doodle is held):
+    // physics steps on the main thread would compete with the scroll, and the
+    // doodles are on their way off screen anyway.
+    let scrolling = false;
+    let scrollT = 0;
+    addEventListener(
+      'scroll',
+      () => {
+        scrolling = true;
+        clearTimeout(scrollT);
+        scrollT = window.setTimeout(() => {
+          scrolling = false;
+          if (live) run();
+        }, 160);
+      },
+      { passive: true },
+    );
     const loop = (now: number) => {
-      if (!onScreen) {
+      if (!onScreen || (scrolling && !grab)) {
         raf = 0;
         return;
       }
@@ -596,7 +613,7 @@ const schema = [website(), faqPage(faqs)];
     }).observe(hero);
     const run = () => {
       idle = 0;
-      if (!raf && onScreen) {
+      if (!raf && onScreen && (!scrolling || grab)) {
         last = 0;
         acc = 0;
         raf = requestAnimationFrame(loop);
