@@ -547,11 +547,16 @@ const schema = [website(), faqPage(faqs)];
     let raf = 0;
     let last = 0;
     let idle = 0;
-    // Settled doodles can jitter forever without Matter calling them asleep,
-    // which would keep the loop running: stop a few seconds after the last
-    // drop or throw (grabbing one wakes it again).
-    let settleBy = 0;
-    const settleSoon = () => (settleBy = performance.now() + 3500);
+    // Stop once every doodle has actually come to rest (still for 0.75s of
+    // physics time), or after 12s of physics time since the last drop or
+    // throw if a pile keeps jittering. Counted in simulated time, not on the
+    // clock, so pauses (scrolling, off screen) can never stop them mid-air.
+    let stillFor = 0;
+    let activeFor = 0;
+    const wake = () => {
+      stillFor = 0;
+      activeFor = 0;
+    };
     const MAX_SPEED = 45;
     const follow = () => {
       if (!grab) return;
@@ -604,7 +609,10 @@ const schema = [website(), faqPage(faqs)];
       render();
       // Unlike the playground, stop once the doodles have landed (no one is
       // looking at a still pile; this saves the battery).
-      const moving = grab || dropping || now < settleBy;
+      const still = things.every((t) => t.body.speed < 0.12 && Math.abs(t.body.angularVelocity) < 0.01);
+      stillFor = still ? stillFor + dt : 0;
+      activeFor += dt;
+      const moving = grab || dropping || (stillFor < 750 && activeFor < 12000);
       idle = moving ? 0 : idle + 1;
       raf = idle > 30 ? 0 : requestAnimationFrame(loop);
     };
@@ -656,7 +664,7 @@ const schema = [website(), faqPage(faqs)];
           el.classList.add('is-dropped');
           if (i === shown.length - 1) {
             dropping = false;
-            settleSoon();
+            wake();
           }
           run();
         }, i * 120);
@@ -726,7 +734,7 @@ const schema = [website(), faqPage(faqs)];
         Body.setAngularVelocity(thing.body, (Math.random() - 0.5) * 0.4);
       }
       grab = null;
-      settleSoon();
+      wake();
       run();
     };
     box.addEventListener('pointerup', release);
