@@ -491,7 +491,8 @@ const schema = [website(), faqPage(faqs)];
     let live = false;
 
     const engine = Engine.create({
-      gravity: { x: 0, y: 1.1 },
+      // Heavy enough that the doodles drop and land with weight.
+      gravity: { x: 0, y: 1.9 },
       enableSleeping: true,
       positionIterations: 10,
       velocityIterations: 8,
@@ -571,9 +572,10 @@ const schema = [website(), faqPage(faqs)];
     // Pause the simulation while the hero is off screen: it would otherwise
     // keep stepping collisions behind the scroll animations further down.
     let onScreen = true;
-    // Also pause while the page is being scrolled (unless a doodle is held):
-    // physics steps on the main thread would compete with the scroll, and the
-    // doodles are on their way off screen anyway.
+    // Also pause while the page is being scrolled once the hero is mostly gone
+    // (unless a doodle is held): physics steps on the main thread would compete
+    // with the scroll. While the hero is still mostly in view they keep falling.
+    let mostlyGone = false;
     let scrolling = false;
     let scrollT = 0;
     addEventListener(
@@ -589,13 +591,13 @@ const schema = [website(), faqPage(faqs)];
       { passive: true },
     );
     const loop = (now: number) => {
-      if (!onScreen || (scrolling && !grab)) {
+      if (!onScreen || (scrolling && mostlyGone && !grab)) {
         raf = 0;
         return;
       }
-      // At most three steps per frame: after a slow frame, catching up in full
-      // would make the next frame slower still.
-      acc = Math.min(acc + (last ? now - last : STEP), STEP * 3);
+      // Real time, catching up at most 50ms after a slow frame: a tighter cap
+      // turns a busy moment into slow motion.
+      acc += Math.min(50, last ? now - last : STEP);
       last = now;
       while (acc >= STEP) {
         follow();
@@ -607,13 +609,17 @@ const schema = [website(), faqPage(faqs)];
       idle = moving ? 0 : idle + 1;
       raf = idle > 30 ? 0 : requestAnimationFrame(loop);
     };
-    new IntersectionObserver(([e]) => {
-      onScreen = e.isIntersecting;
-      if (onScreen && live) run();
-    }).observe(hero);
+    new IntersectionObserver(
+      ([e]) => {
+        onScreen = e.isIntersecting;
+        mostlyGone = e.intersectionRatio < 0.5;
+        if (onScreen && live) run();
+      },
+      { threshold: [0, 0.5] },
+    ).observe(hero);
     const run = () => {
       idle = 0;
-      if (!raf && onScreen && (!scrolling || grab)) {
+      if (!raf && onScreen && (!scrolling || !mostlyGone || grab)) {
         last = 0;
         acc = 0;
         raf = requestAnimationFrame(loop);
@@ -639,7 +645,7 @@ const schema = [website(), faqPage(faqs)];
           const body = Bodies.circle(x, top - h - Math.random() * 160, rad, {
             restitution: 0.35,
             friction: 0.35,
-            frictionAir: 0.012,
+            frictionAir: 0.006,
             density: 0.0015,
           });
           Body.setAngle(body, (Math.random() - 0.5) * 1.2);
