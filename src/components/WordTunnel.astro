@@ -149,6 +149,7 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
 
 
 
+
 <script>
   const reduce = document.documentElement.classList.contains('reduce-motion');
 
@@ -160,41 +161,315 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
     const hint = section.querySelector<HTMLElement>('.tun__hint')!;
     const words: string[] = JSON.parse(section.querySelector('template')!.innerHTML);
 
-    // Each word is rendered once into a bitmap and shown as an <img>; every
-    // frame then only changes transforms and opacity, which the GPU applies
-    // without redrawing anything.
+    // Each word is rendered once into a bitmap and shown as an <img>, so the
+    // GPU can move, scale and fade it without redrawing anything.
     type Sprite = { url: string; w: number; dw: number; dh: number };
-    type Item = { word: string; tone: string; el: HTMLImageElement; sprite: Sprite | null; angle: number; z: number; tf: string; op: string; shown: boolean };
+    type Item = { word: string; tone: string; el: HTMLImageElement; sprite: Sprite | null; angle: number; z: number; anim: Animation | null; tf: string; op: string; shown: boolean };
+    // cyc counts how many times the word has looped (round the drum, down the
+    // tunnel): when it changes, the word jumps back to the start of its loop.
+    type Pose = { x: number; y: number; a: number; sx: number; sy: number; op: number; cyc: number };
     let items: Item[] = [];
     let sprites = new Map<string, Promise<Sprite>>();
     let urls: string[] = [];
     let generation = 0;
+    let ready = false;
     let R = 0;
     let L = 0;
     const P = 520; // perspective distance, px
 
-    // Everything a frame needs from the layout is cached, so a frame only
-    // writes styles and never forces the browser to re-measure the page.
+    // Layout numbers, cached so the per-frame path never re-measures the page.
     let vw = innerWidth;
-    let vh = innerHeight;
-    let cw = 1; // stage size, CSS px
-    let ch = 1;
+    let cw = 1; // stage size, CSS px (the stage is 100svh, so it ignores
+    let ch = 1; // the iOS toolbar showing and hiding)
     let secTop = 0;
     let secTotal = 1;
     let F = 1; // a word's unscaled line height
-    // Bitmaps at the screen's pixel density, capped at 2x: sharper is
-    // invisible in motion and would quadruple the memory.
     const dpr = Math.min(2, devicePixelRatio || 1);
 
     const layout = () => {
       vw = innerWidth;
-      vh = innerHeight;
-      secTop = section.getBoundingClientRect().top + scrollY;
-      secTotal = Math.max(1, section.offsetHeight - vh);
       cw = tube.clientWidth || vw;
-      ch = tube.clientHeight || vh;
+      ch = tube.clientHeight || innerHeight;
+      secTop = section.getBoundingClientRect().top + scrollY;
+      secTotal = Math.max(1, section.offsetHeight - innerHeight);
     };
 
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+
+    /* -----------------------------------------------------------------------
+       The choreography: every word's pose at a given scroll progress (0 → 1).
+       Three acts:
+        1. a flat ribbon of words wrapped around a horizontal drum, rolling up;
+        2. the ribbon bends into the tunnel (each word glides from its line on
+           the drum to its place on the tunnel wall);
+        3. the tunnel flies, spins and drains.
+       ----------------------------------------------------------------------- */
+    const stage = (progress: number) => {
+      const q = clamp01((progress - 0.22) / 0.78);
+      const lh = Math.min(ch * 0.085, vw * 0.11);
+      return {
+        mRaw: clamp01((progress - 0.06) / 0.26),
+        travel: q * L * 1.55,
+        spin: q * 70,
+        // The tunnel drains at the end: the far words go first and the near
+        // ones last, so the walls empty out toward the viewer.
+        x: clamp01((q - 0.48) / 0.18),
+        lh,
+        k: (lh * 1.02) / F,
+        drumR: ch * 0.46,
+        roll: progress * lh * 9,
+      };
+    };
+    const poses = (progress: number): Pose[] => {
+      const st = stage(progress);
+      return items.map((_, i) => poseOf(i, st));
+    };
+    const poseAt = (i: number, progress: number) => poseOf(i, stage(progress));
+    const poseOf = (i: number, st: ReturnType<typeof stage>): Pose => {
+      const { mRaw, travel, spin, x, lh, k, drumR, roll } = st;
+      const rows = items.length;
+      {
+        const it = items[i];
+        const iw = it.sprite?.w ?? 0;
+        // Act 3 pose, on the tunnel wall. Each word lies along the wall: its
+        // far and near ends are projected separately and the word stretched
+        // between them. A near end that reaches the camera is pushed
+        // off-screen, so nothing ever streaks across the centre.
+        const d = L - ((it.z + travel) % L);
+        const z = -d + 260;
+        const depth = P - z;
+        let tx = 0;
+        let ty = 0;
+        let ta = 0;
+        let tsx = k;
+        let tsy = k;
+        let top = 0;
+        if (depth >= 40) {
+          const fadeIn = Math.min(1, (L - d) / (L * 0.35));
+          const fadeOut = clamp01((d - 60) / 340);
+          const exit = clamp01(1 - x * (1 + 1.6 * (d / L)));
+          top = Math.max(0, fadeIn * fadeOut * exit);
+          const half = iw / 2;
+          const rFar = (R * P) / (depth + half);
+          const rNear = (R * P) / Math.max(30, depth - half);
+          const rc = (rFar + rNear) / 2;
+          tsx = iw ? (rNear - rFar) / iw : 1;
+          tsy = P / depth;
+          const a = ((it.angle + spin) * Math.PI) / 180;
+          tx = rc * Math.cos(a);
+          ty = rc * Math.sin(a);
+          ta = Math.atan2(Math.sin(a), Math.cos(a));
+        }
+        // Act 1 pose, a line on the drum.
+        const fy0 = (i - rows / 2) * lh - roll;
+        const span = rows * lh;
+        const fy = ((((fy0 + span / 2) % span) + span) % span) - span / 2;
+        const cyc = Math.floor((it.z + travel) / L) * 1000 + Math.floor((fy0 + span / 2) / span);
+        const th = fy / drumR;
+        const onFront = Math.abs(th) < Math.PI / 2;
+        const c = onFront ? Math.cos(th) : 0;
+        const fop = onFront ? Math.pow(c, 0.6) : 0;
+        // Blend: the ribbon peels into the tunnel from the top line down.
+        const band = clamp01((Math.max(-1.57, Math.min(1.57, th)) + 1.57) / 3.14);
+        const m = smooth(clamp01(mRaw * 1.7 - band * 0.7));
+        // Long words shrink to fit narrow screens while they sit on the drum.
+        const kf = Math.min(k, iw ? (vw * 0.92) / iw : k);
+        return {
+          x: cw / 2 + tx * m,
+          y: ch / 2 + drumR * Math.sin(Math.max(-1.57, Math.min(1.57, th))) * (1 - m) + ty * m,
+          a: ta * m,
+          sx: kf * (1 - m) + tsx * m,
+          sy: Math.max(0.001, kf * c * (1 - m) + tsy * m),
+          op: Math.min(1, fop * (1 - m) + top * m),
+          cyc,
+        };
+      }
+    };
+
+    // The caption and hint, at a given progress.
+    const extras = (progress: number) => {
+      const q = clamp01((progress - 0.22) / 0.78);
+      const x = clamp01((q - 0.48) / 0.18);
+      // Once the tunnel is empty, the caption travels down the same passage:
+      // it emerges from the vanishing point, settles, then flies past.
+      const cin = clamp01((q - 0.67) / 0.16);
+      const cout = clamp01((q - 0.9) / 0.1);
+      const grow = 1 - Math.pow(1 - cin, 3);
+      return {
+        hint: 1 - x,
+        cop: Math.min(1, cin * 3) * (1 - cout),
+        cs: (0.03 + 0.97 * grow) * (1 + cout * cout * 2.2),
+      };
+    };
+
+    const wordTf = (p: Pose) =>
+      `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) rotate(${p.a.toFixed(4)}rad) scale(${p.sx.toFixed(4)}, ${p.sy.toFixed(4)}) translate(-50%, -50%)`;
+    const centerTf = (s: number) => `translate(-50%, -50%) scale(${s.toFixed(4)})`;
+
+    /* -----------------------------------------------------------------------
+       Scroll-driven mode (Safari 26+, Chrome 115+): the whole choreography is
+       sampled once into keyframes on the page's scroll timeline. The browser
+       then plays it straight off the scroll position, in step with the finger
+       at the display's full refresh rate, with no script running per frame.
+       ----------------------------------------------------------------------- */
+    // (Not in TypeScript's DOM types yet.)
+    const ScrollTL = (window as unknown as { ScrollTimeline?: new (o: { source: Element; axis: string }) => AnimationTimeline }).ScrollTimeline;
+    const timeline = ScrollTL ? new ScrollTL({ source: document.documentElement, axis: 'block' }) : null;
+    const SAMPLES = 300;
+    let extraAnims: Animation[] = [];
+
+    const bake = () => {
+      if (!timeline || !ready) return;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      if (max <= 0) return;
+      // Section progress p maps to this fraction of the page's scroll.
+      const at = (p: number) => clamp01((secTop + p * secTotal) / max);
+      const ps: number[] = [];
+      for (let s = 0; s <= SAMPLES; s++) ps.push(s / SAMPLES);
+      const frames = ps.map(poses);
+
+      items.forEach((it, i) => {
+        // Sample the path; where the word loops back to the start (a jump),
+        // find the exact moment and put two keyframes there, so it jumps
+        // instantly instead of being dragged across the screen in between.
+        const seq: Pose[] = [];
+        const at_: number[] = [];
+        for (let s = 0; s < ps.length; s++) {
+          const cur = frames[s][i];
+          if (s > 0 && cur.cyc !== frames[s - 1][i].cyc) {
+            let lo = ps[s - 1];
+            let hi = ps[s];
+            const c0 = frames[s - 1][i].cyc;
+            for (let n = 0; n < 24; n++) {
+              const mid = (lo + hi) / 2;
+              if (poseAt(i, mid).cyc === c0) lo = mid;
+              else hi = mid;
+            }
+            const o = at(hi);
+            seq.push(poseAt(i, lo), poseAt(i, hi));
+            at_.push(o, o);
+          }
+          seq.push(cur);
+          at_.push(at(ps[s]));
+        }
+        // Keep the rotation continuous so interpolation never spins the long way.
+        for (let s = 1; s < seq.length; s++) {
+          let da = seq[s].a - seq[s - 1].a;
+          while (da > Math.PI) {
+            seq[s].a -= 2 * Math.PI;
+            da -= 2 * Math.PI;
+          }
+          while (da < -Math.PI) {
+            seq[s].a += 2 * Math.PI;
+            da += 2 * Math.PI;
+          }
+        }
+        const kf: Keyframe[] = [{ offset: 0, transform: wordTf(seq[0]), opacity: seq[0].op.toFixed(3) }];
+        let lastOff = 0;
+        for (let s = 0; s < seq.length; s++) {
+          // Long stretches where the word is invisible need no keyframes.
+          const hidden = (j: number) => !seq[j] || seq[j].op < 0.002;
+          if (s > 0 && s < seq.length - 1 && hidden(s - 1) && hidden(s) && hidden(s + 1)) continue;
+          const off = at_[s];
+          if (off < lastOff) continue;
+          lastOff = off;
+          kf.push({ offset: off, transform: wordTf(seq[s]), opacity: seq[s].op.toFixed(3) });
+        }
+        const end = seq[seq.length - 1];
+        kf.push({ offset: 1, transform: wordTf(end), opacity: end.op.toFixed(3) });
+        it.el.style.visibility = '';
+        it.el.style.transform = it.el.style.opacity = '';
+        if (it.anim) (it.anim.effect as KeyframeEffect).setKeyframes(kf);
+        else it.anim = it.el.animate(kf, { timeline, fill: 'both', duration: 'auto', easing: 'linear' } as KeyframeAnimationOptions);
+      });
+
+      // Caption and hint on the same timeline.
+      const ex = ps.map(extras);
+      const hintKf: Keyframe[] = [{ offset: 0, opacity: ex[0].hint.toFixed(3) }];
+      const centerKf: Keyframe[] = [{ offset: 0, opacity: ex[0].cop.toFixed(3), transform: centerTf(ex[0].cs) }];
+      let lastOff = 0;
+      ps.forEach((p, s) => {
+        const off = at(p);
+        if (off < lastOff) return;
+        lastOff = off;
+        hintKf.push({ offset: off, opacity: ex[s].hint.toFixed(3) });
+        centerKf.push({ offset: off, opacity: ex[s].cop.toFixed(3), transform: centerTf(ex[s].cs) });
+      });
+      const e1 = ex[ex.length - 1];
+      hintKf.push({ offset: 1, opacity: e1.hint.toFixed(3) });
+      centerKf.push({ offset: 1, opacity: e1.cop.toFixed(3), transform: centerTf(e1.cs) });
+      extraAnims.forEach((a) => a.cancel());
+      const opts = { timeline, fill: 'both', duration: 'auto', easing: 'linear' } as KeyframeAnimationOptions;
+      extraAnims = [hint.animate(hintKf, opts), center.animate(centerKf, opts)];
+    };
+
+    let bt = 0;
+    const rebake = () => {
+      clearTimeout(bt);
+      bt = window.setTimeout(bake, 120);
+    };
+
+    /* -----------------------------------------------------------------------
+       Fallback for older browsers: drive the same poses from scroll events.
+       ----------------------------------------------------------------------- */
+    let progress = 0;
+    let drawn = -1;
+    let visible = false;
+    let ticking = false;
+    let lastHint = '';
+    let lastCenter = '';
+
+    const render = () => {
+      ticking = false;
+      if (!ready || progress === drawn) return;
+      drawn = progress;
+      const ps = poses(progress);
+      items.forEach((it, i) => {
+        const p = ps[i];
+        const show = p.op >= 0.002;
+        if (show !== it.shown) {
+          it.shown = show;
+          it.el.style.visibility = show ? '' : 'hidden';
+        }
+        if (!show) return;
+        const tf = wordTf(p);
+        if (tf !== it.tf) it.el.style.transform = it.tf = tf;
+        const op = p.op.toFixed(3);
+        if (op !== it.op) it.el.style.opacity = it.op = op;
+      });
+      const ex = extras(progress);
+      const hv = ex.hint.toFixed(3);
+      if (hv !== lastHint) hint.style.opacity = lastHint = hv;
+      const cv = `${ex.cop.toFixed(3)}|${ex.cs.toFixed(4)}`;
+      if (cv !== lastCenter) {
+        lastCenter = cv;
+        center.style.opacity = ex.cop.toFixed(3);
+        center.style.transform = centerTf(ex.cs);
+      }
+    };
+
+    const measure = () => {
+      if (timeline) return;
+      progress = Math.min(1, Math.max(0, (scrollY - secTop) / secTotal));
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(render);
+      }
+    };
+
+    // After any change to the words or the layout.
+    const refresh = () => {
+      if (timeline) rebake();
+      else {
+        drawn = -1;
+        measure();
+      }
+    };
+
+    /* -----------------------------------------------------------------------
+       Word bitmaps
+       ----------------------------------------------------------------------- */
     const scratch = document.createElement('canvas').getContext('2d')!;
     const sprite = (word: string, tone: string): Promise<Sprite> => {
       const key = `${tone}|${word}`;
@@ -259,14 +534,16 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
       Promise.all(jobs).then(() => {
         if (gen !== generation) return;
         oldUrls.forEach((u) => URL.revokeObjectURL(u));
-        drawn = -1;
-        measure();
+        ready = true;
+        refresh();
       });
     };
 
     const build = () => {
+      items.forEach((it) => it.anim?.cancel());
       tube.innerHTML = '';
       items = [];
+      ready = false;
       const small = innerWidth < 760;
       const sides = small ? 8 : 10;
       const rings = small ? 6 : 7;
@@ -286,193 +563,46 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
           el.style.visibility = 'hidden';
           tube.appendChild(el);
           // Stagger alternate sides so words never line up in rows.
-          items.push({ word: words[w++ % words.length], tone, el, sprite: null, angle: (360 / sides) * s + (r % 2) * (180 / sides), z: r * gap + (s % 2) * gap * 0.5, tf: '', op: '', shown: false });
+          items.push({ word: words[w++ % words.length], tone, el, sprite: null, angle: (360 / sides) * s + (r % 2) * (180 / sides), z: r * gap + (s % 2) * gap * 0.5, anim: null, tf: '', op: '', shown: false });
         }
-      }
-    };
-
-    let progress = 0;
-    let drawn = -1;
-    let visible = false;
-    let ticking = false;
-    let lastHint = '';
-    let lastCenter = '';
-
-    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-    const smooth = (t: number) => t * t * (3 - 2 * t);
-
-    const render = () => {
-      ticking = false;
-      if (progress === drawn) return;
-      drawn = progress;
-      // Three acts over the scroll:
-      //  1. a flat ribbon of words wrapped around a horizontal drum, rolling up;
-      //  2. the ribbon bends into the tunnel (each word glides from its line
-      //     on the drum to its place on the tunnel wall);
-      //  3. the tunnel flies, spins and drains.
-      const mRaw = clamp01((progress - 0.06) / 0.26);
-      const q = clamp01((progress - 0.22) / 0.78);
-      const travel = q * L * 1.55;
-      const spin = q * 70;
-      // The tunnel drains at the end: the far words go first and the near
-      // ones last, so the walls empty out toward the viewer.
-      const x = clamp01((q - 0.48) / 0.18);
-      const hv = (1 - x).toFixed(3);
-      if (hv !== lastHint) hint.style.opacity = lastHint = hv;
-
-      // The drum: lines of words stacked down the middle of the screen.
-      const lh = Math.min(vh * 0.085, vw * 0.11);
-      const k = (lh * 1.02) / F;
-      const drumR = vh * 0.46;
-      const rows = items.length;
-      const roll = progress * lh * 9;
-      const ox = cw / 2;
-      const oy = ch / 2;
-
-      for (let i = 0; i < rows; i++) {
-        const it = items[i];
-        const sp = it.sprite;
-        if (!sp) continue;
-        const iw = sp.w;
-        // --- Act 3 pose: on the tunnel wall --------------------------------
-        // Perspective is projected here: each word lies along the tunnel wall,
-        // its far and near ends projected separately and the word stretched
-        // between them. A near end that reaches the camera is pushed
-        // off-screen, so nothing ever streaks across the centre.
-        const d = L - ((it.z + travel) % L);
-        const z = -d + 260;
-        const depth = P - z;
-        let tx = 0;
-        let ty = 0;
-        let ta = 0;
-        let tsx = k;
-        let tsy = k;
-        let top = 0;
-        if (depth >= 40) {
-          const fadeIn = Math.min(1, (L - d) / (L * 0.35));
-          const fadeOut = clamp01((d - 60) / 340);
-          const exit = clamp01(1 - x * (1 + 1.6 * (d / L)));
-          top = Math.max(0, fadeIn * fadeOut * exit);
-          const half = iw / 2;
-          const rFar = (R * P) / (depth + half);
-          const rNear = (R * P) / Math.max(30, depth - half);
-          const rc = (rFar + rNear) / 2;
-          tsx = iw ? (rNear - rFar) / iw : 1;
-          tsy = P / depth;
-          const a = ((it.angle + spin) * Math.PI) / 180;
-          tx = rc * Math.cos(a);
-          ty = rc * Math.sin(a);
-          ta = Math.atan2(Math.sin(a), Math.cos(a));
-        }
-
-        // --- Act 1 pose: a line on the drum --------------------------------
-        let fy = (i - rows / 2) * lh - roll;
-        const span = rows * lh;
-        fy = ((((fy + span / 2) % span) + span) % span) - span / 2;
-        const th = fy / drumR;
-        const onFront = Math.abs(th) < Math.PI / 2;
-        const c = onFront ? Math.cos(th) : 0;
-        const fop = onFront ? Math.pow(c, 0.6) : 0;
-
-        // --- Blend between the two ----------------------------------------
-        // The ribbon peels into the tunnel from the top line down, so it
-        // unwraps as one surface instead of every word moving at once.
-        const band = clamp01((Math.max(-1.57, Math.min(1.57, th)) + 1.57) / 3.14);
-        const m = smooth(clamp01(mRaw * 1.7 - band * 0.7));
-        const op = fop * (1 - m) + top * m;
-        // Invisible words leave the compositor and get no updates at all.
-        const show = op >= 0.002;
-        if (show !== it.shown) {
-          it.shown = show;
-          it.el.style.visibility = show ? '' : 'hidden';
-        }
-        if (!show) continue;
-        // Long words shrink to fit narrow screens while they sit on the drum.
-        const kf = Math.min(k, iw ? (vw * 0.92) / iw : k);
-        const px = tx * m;
-        const py = drumR * Math.sin(Math.max(-1.57, Math.min(1.57, th))) * (1 - m) + ty * m;
-        const pa = ta * m;
-        const psx = kf * (1 - m) + tsx * m;
-        const psy = Math.max(0.001, kf * c * (1 - m) + tsy * m);
-        // Move to the word's spot, rotate, stretch, centred on the word:
-        // folded into one matrix.
-        const cos = Math.cos(pa);
-        const sin = Math.sin(pa);
-        const ma = cos * psx;
-        const mb = sin * psx;
-        const mc = -sin * psy;
-        const md = cos * psy;
-        const hw = sp.dw / 2;
-        const hh = sp.dh / 2;
-        const me = ox + px - ma * hw - mc * hh;
-        const mf = oy + py - mb * hw - md * hh;
-        const tf = `matrix(${ma.toFixed(4)},${mb.toFixed(4)},${mc.toFixed(4)},${md.toFixed(4)},${me.toFixed(1)},${mf.toFixed(1)})`;
-        if (tf !== it.tf) it.el.style.transform = it.tf = tf;
-        const ops = Math.min(1, op).toFixed(3);
-        if (ops !== it.op) it.el.style.opacity = it.op = ops;
-      }
-
-      // Once the tunnel is empty, the caption travels down the same passage:
-      // it emerges from the vanishing point, settles, then flies past the
-      // viewer, leaving the centre clear for the next section.
-      const cin = clamp01((q - 0.67) / 0.16);
-      const cout = clamp01((q - 0.9) / 0.1);
-      const grow = 1 - Math.pow(1 - cin, 3);
-      const scale = (0.03 + 0.97 * grow) * (1 + cout * cout * 2.2);
-      const cop = (Math.min(1, cin * 3) * (1 - cout)).toFixed(3);
-      const cv = `${cop}|${scale.toFixed(4)}`;
-      if (cv !== lastCenter) {
-        lastCenter = cv;
-        center.style.opacity = cop;
-        center.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(4)})`;
-      }
-    };
-
-    // Scroll position → progress from cached numbers: no layout reads.
-    const measure = () => {
-      progress = Math.min(1, Math.max(0, (scrollY - secTop) / secTotal));
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(render);
       }
     };
 
     build();
     layout();
     prepare();
-    measure();
     document.fonts?.ready.then(prepare);
-    // Content above (hero, fonts, images) can change the section's position.
+
+    // Content above (hero, fonts, images) or below can move the section or
+    // change the page's scroll length: re-sync either way.
     new ResizeObserver(() => {
       layout();
-      drawn = -1;
-      measure();
+      refresh();
     }).observe(document.body);
 
-    new IntersectionObserver(
-      ([e]) => {
-        visible = e.isIntersecting;
-        // Coming into view after a jump: draw the right frame straight away.
-        if (visible) measure();
-      },
-      { rootMargin: '100px' },
-    ).observe(section);
-    addEventListener('scroll', () => visible && measure(), { passive: true });
+    if (!timeline) {
+      new IntersectionObserver(
+        ([e]) => {
+          visible = e.isIntersecting;
+          if (visible) measure();
+        },
+        { rootMargin: '100px' },
+      ).observe(section);
+      addEventListener('scroll', () => visible && measure(), { passive: true });
+    }
+
     let rt = 0;
     let builtW = innerWidth;
     addEventListener('resize', () => {
       clearTimeout(rt);
       rt = window.setTimeout(() => {
+        // Phones fire resize whenever the toolbar shows or hides; the stage is
+        // sized in svh, so only a real width change needs the words redone.
+        if (innerWidth === builtW) return;
+        builtW = innerWidth;
+        build();
         layout();
-        // Phones fire resize whenever the toolbar shows or hides; only redo
-        // the words when the width really changes.
-        if (innerWidth !== builtW) {
-          builtW = innerWidth;
-          build();
-          prepare();
-        }
-        drawn = -1;
-        measure();
+        prepare();
       }, 200);
     });
   });
