@@ -598,7 +598,14 @@ const schema = [website(), faqPage(faqs)];
         raf = 0;
         return;
       }
-      // One physics update per screen frame, sized to the time that passed
+      // Capped at 60 updates a second: on 120 Hz screens (ProMotion iPhones)
+      // that halves the physics and redraw work, and falling doodles look
+      // just as smooth at 60. Skip any frame that comes sooner.
+      if (last && now - last < 1000 / 60 - 2) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+      // One physics update per (capped) frame, sized to the time that passed
       // (capped so a stall can't launch anything). Several small fixed steps
       // per frame cost several times as much and, once a phone fell behind,
       // each slow frame queued more steps for the next one.
