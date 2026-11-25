@@ -9,10 +9,9 @@ const INTRO_MS = 1500;
    Smooth scroll (skipped for reduced motion and touch-first devices keep native feel)
    --------------------------------------------------------------------------- */
 let lenis: Lenis | null = null;
-// Lenis doesn't smooth touch scrolling anyway, and on iOS it resyncs the scroll
-// position on every toolbar resize, which can throw the page back mid-swipe.
-const touchFirst = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-if (!reduceMotion && !touchFirst) {
+// Runs on phones too: the scroll-driven sections (the word tunnel especially)
+// felt choppier on iPhone with Lenis switched off for touch devices.
+if (!reduceMotion) {
   lenis = new Lenis({ lerp: 0.11, anchors: { offset: -80 }, autoRaf: true });
 }
 
