@@ -449,7 +449,17 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
         requestAnimationFrame(render);
       }
     };
-    addEventListener('scroll', req, { passive: true });
+    // Only measure while on screen, so it never forces a layout in the
+    // middle of the word tunnel's animation frame.
+    let visible = false;
+    new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        req();
+      },
+      { rootMargin: '100px' },
+    ).observe(section);
+    addEventListener('scroll', () => visible && req(), { passive: true });
     addEventListener('resize', req);
     render();
   });

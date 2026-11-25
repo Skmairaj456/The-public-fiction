@@ -9,7 +9,10 @@ const INTRO_MS = 1500;
    Smooth scroll (skipped for reduced motion and touch-first devices keep native feel)
    --------------------------------------------------------------------------- */
 let lenis: Lenis | null = null;
-if (!reduceMotion) {
+// Lenis doesn't smooth touch scrolling anyway, and on iOS it resyncs the scroll
+// position on every toolbar resize, which can throw the page back mid-swipe.
+const touchFirst = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+if (!reduceMotion && !touchFirst) {
   lenis = new Lenis({ lerp: 0.11, anchors: { offset: -80 }, autoRaf: true });
 }
 
@@ -57,6 +60,11 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
    Fit-to-width words: data-fit scales an element's type to fill its parent
    --------------------------------------------------------------------------- */
 const fitEls = Array.from(document.querySelectorAll<HTMLElement>('[data-fit]'));
+// innerHeight changes every time a phone's toolbar shows or hides (i.e. on every
+// change of scroll direction). Refitting then resizes the hero and shifts the
+// whole page, so the vh cap uses a height that only changes with real resizes.
+let fitVh = document.documentElement.clientHeight || window.innerHeight;
+let fitW = window.innerWidth;
 function fitText() {
   for (const el of fitEls) {
     const parent = el.parentElement;
@@ -68,7 +76,7 @@ function fitText() {
     // Optional cap: data-fit-vh="34" keeps the type under 34% of the viewport height.
     const capVh = Number(el.dataset.fitVh) || 0;
     let size = width > 0 ? (100 * target) / width : 100;
-    if (capVh) size = Math.min(size, (window.innerHeight * capVh) / 100 / 0.8);
+    if (capVh) size = Math.min(size, (fitVh * capVh) / 100 / 0.8);
     el.style.fontSize = `${size}px`;
     el.style.display = 'block';
   }
@@ -79,7 +87,15 @@ if (fitEls.length) {
   let ft = 0;
   window.addEventListener('resize', () => {
     clearTimeout(ft);
-    ft = window.setTimeout(fitText, 120);
+    ft = window.setTimeout(() => {
+      const w = window.innerWidth;
+      const h = document.documentElement.clientHeight || window.innerHeight;
+      // Ignore height-only wobbles smaller than a browser toolbar (~120px).
+      if (w === fitW && Math.abs(h - fitVh) < 120) return;
+      fitW = w;
+      fitVh = h;
+      fitText();
+    }, 120);
   });
 }
 
@@ -93,9 +109,11 @@ let menuOpen = false;
 function onScroll() {
   const y = window.scrollY;
   if (header) {
-    header.dataset.scrolled = String(y > 24);
-    const goingDown = y > lastY && y > 320;
-    header.dataset.hidden = String(goingDown && !menuOpen);
+    // Only touch the attributes when they change: each write re-styles the header.
+    const scrolled = String(y > 24);
+    const hidden = String(y > lastY && y > 320 && !menuOpen);
+    if (header.dataset.scrolled !== scrolled) header.dataset.scrolled = scrolled;
+    if (header.dataset.hidden !== hidden) header.dataset.hidden = hidden;
   }
   lastY = y;
 }

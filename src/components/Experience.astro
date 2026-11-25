@@ -170,7 +170,7 @@ const { word = 'Experience', facts } = Astro.props;
 <script>
   if (!document.documentElement.classList.contains('reduce-motion')) {
     document.querySelectorAll<HTMLElement>('[data-xp]').forEach((section) => {
-      const stage = section.querySelector<HTMLElement>('.xp__stage')!;
+      const word = section.querySelector<HTMLElement>('.xp__word')!;
       const dome = section.querySelector<HTMLElement>('[data-xp-dome]')!;
       const rocket = section.querySelector<HTMLElement>('[data-xp-rocket]')!;
       const facts = section.querySelector<HTMLElement>('[data-xp-facts]')!;
@@ -209,7 +209,8 @@ const { word = 'Experience', facts } = Astro.props;
         dome.style.setProperty('--ds', (0.2 + g * 1.4).toFixed(4));
         // 0.7 → 0.85: the word lifts and the facts arrive.
         const f = easeOut(clamp((p - 0.7) / 0.15));
-        stage.style.setProperty('--lift', `${(f * vh * 0.12).toFixed(1)}px`);
+        // On the word itself: set on the stage, it would re-style the whole scene.
+        word.style.setProperty('--lift', `${(f * vh * 0.12).toFixed(1)}px`);
         facts.style.setProperty('--fo', f.toFixed(3));
         if (f > 0.4 && !counted) countUp();
       };
@@ -220,7 +221,17 @@ const { word = 'Experience', facts } = Astro.props;
         }
       };
       counters.forEach((c) => (c.textContent = '0'));
-      addEventListener('scroll', req, { passive: true });
+      // Only measure while on screen, so it never forces a layout in the
+      // middle of another section's animation frame.
+      let visible = false;
+      new IntersectionObserver(
+        ([e]) => {
+          visible = e.isIntersecting;
+          req();
+        },
+        { rootMargin: '100px' },
+      ).observe(section);
+      addEventListener('scroll', () => visible && req(), { passive: true });
       addEventListener('resize', req);
       render();
     });

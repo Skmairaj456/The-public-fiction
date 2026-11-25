@@ -52,29 +52,38 @@ const { projects } = Astro.props;
     document.querySelectorAll<HTMLElement>('[data-stack]').forEach((stack) => {
       const items = Array.from(stack.querySelectorAll<HTMLElement>('[data-stack-item]'));
       let ticking = false;
+      const last: string[] = [];
       const render = () => {
         ticking = false;
+        // Read every position first, then write: interleaving the two forces
+        // a fresh layout for every card.
+        const rects = items.map((item) => item.getBoundingClientRect());
         items.forEach((item, i) => {
-          const next = items[i + 1];
           const card = item.firstElementChild as HTMLElement;
-          if (!next) return card.style.setProperty('--s', '1');
           // How far the next card has slid over this one (0 → 1).
-          const a = item.getBoundingClientRect();
-          const b = next.getBoundingClientRect();
-          const covered = Math.min(1, Math.max(0, (a.bottom - b.top) / a.height));
-          card.style.setProperty('--s', String(1 - covered * 0.07));
+          const a = rects[i];
+          const covered = items[i + 1] ? Math.min(1, Math.max(0, (a.bottom - rects[i + 1].top) / a.height)) : 0;
+          // Set the transform itself, and only when it changes: updating a
+          // custom property instead would re-style the whole card every frame.
+          const tf = `scale(${(1 - covered * 0.07).toFixed(4)})`;
+          if (tf !== last[i]) card.style.transform = last[i] = tf;
         });
       };
-      addEventListener(
-        'scroll',
-        () => {
-          if (!ticking) {
-            ticking = true;
-            requestAnimationFrame(render);
-          }
+      const req = () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(render);
+        }
+      };
+      let visible = false;
+      new IntersectionObserver(
+        ([e]) => {
+          visible = e.isIntersecting;
+          req();
         },
-        { passive: true },
-      );
+        { rootMargin: '100px' },
+      ).observe(stack);
+      addEventListener('scroll', () => visible && req(), { passive: true });
       render();
     });
   }

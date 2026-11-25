@@ -97,6 +97,13 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
+/* Lenis owns the scroll position. If the browser also nudges it (scroll
+   anchoring) when content above changes size, the two fight and the page
+   snaps back mid-scroll. */
+html.lenis,
+html.lenis body {
+  overflow-anchor: none;
+}
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
