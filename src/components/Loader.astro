@@ -47,10 +47,11 @@ import Logo from './Logo.astro';
   }
   @keyframes intro-out {
     to {
-      /* Hidden once it has lifted, so a full-screen layer doesn't stay
-         composited over the page for the rest of the visit. */
-      visibility: hidden;
-      clip-path: inset(0 0 100% 0);
+      /* Slides up by transform (GPU) rather than a clip-path wipe, which
+         repaints the whole screen every frame while the doodles start to
+         fall. Hidden once it has lifted, so the full-screen layer doesn't
+         stay composited over the page for the rest of the visit. */
+      transform: translateY(-100%);
       visibility: hidden;
     }
   }

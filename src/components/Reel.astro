@@ -504,7 +504,9 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
     let height = 1;
     let W = innerWidth;
     let H = innerHeight;
+    let measured = false;
     const measure = () => {
+      measured = true;
       W = innerWidth;
       H = innerHeight;
       top = docTop(section);
@@ -593,7 +595,7 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
           }, N);
         });
         gate();
-      });
+      }, section);
       return;
     }
 
@@ -602,6 +604,7 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
     let pinned = false;
     const render = () => {
       ticking = false;
+      if (!measured) return;
       const s = scene(scrollY);
       if (s.pinned !== pinned) {
         pinned = s.pinned;
@@ -635,6 +638,6 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
     onLayout(() => {
       measure();
       req();
-    });
+    }, section);
   });
 </script>

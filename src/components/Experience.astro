@@ -197,7 +197,9 @@ const { word = 'Experience', facts } = Astro.props;
       let top = 0;
       let total = 1;
       let vh = innerHeight;
+      let measured = false;
       const measure = () => {
+        measured = true;
         vh = innerHeight;
         top = docTop(section);
         total = Math.max(1, section.offsetHeight - vh);
@@ -249,10 +251,10 @@ const { word = 'Experience', facts } = Astro.props;
             }),
           ];
           gate();
-        });
+        }, section);
         // The only script left on scroll: start the count once (no layout reads).
         const check = () => {
-          if (counted) return;
+          if (counted || !measured) return;
           if (scene(scrollY).f > 0.4) {
             countUp();
             removeEventListener('scroll', check);
@@ -267,6 +269,7 @@ const { word = 'Experience', facts } = Astro.props;
       let ticking = false;
       const render = () => {
         ticking = false;
+        if (!measured) return;
         const s = scene(scrollY);
         rocket.style.setProperty('--ry', `${s.ry.toFixed(1)}px`);
         rocket.style.setProperty('--rr', `${s.rr.toFixed(2)}deg`);
@@ -295,7 +298,7 @@ const { word = 'Experience', facts } = Astro.props;
       onLayout(() => {
         measure();
         req();
-      });
+      }, section);
     });
   }
 </script>

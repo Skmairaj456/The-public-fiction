@@ -151,6 +151,8 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
 
 
 <script>
+  import { whenSettledOrNear } from '../scripts/scrollDriven';
+
   const reduce = document.documentElement.classList.contains('reduce-motion');
 
   document.querySelectorAll<HTMLElement>('[data-tunnel]').forEach((section) => {
@@ -591,17 +593,30 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
       }
     };
 
-    build();
-    layout();
-    prepare();
-    document.fonts?.ready.then(prepare);
-
-    // Content above (hero, fonts, images) or below can move the section or
-    // change the page's scroll length: re-sync either way.
-    new ResizeObserver(() => {
+    // Set up once the page has settled (fonts in, the hero's doodles landed)
+    // or as soon as the tunnel comes within a screen. Rendering the word
+    // images and keyframes is the heaviest script on the page; doing it while
+    // the page loaded made the hero's falling doodles stutter.
+    let started = false;
+    whenSettledOrNear(section, () => {
+      started = true;
+      build();
       layout();
-      refresh();
-    }).observe(document.body);
+      prepare();
+      // Fonts still loading change the words' sizes.
+      if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(prepare);
+      // Content above or below can move the section or change the page's
+      // scroll length: re-sync either way. (It reports once straight away.)
+      let first = true;
+      new ResizeObserver(() => {
+        if (first) {
+          first = false;
+          return;
+        }
+        layout();
+        refresh();
+      }).observe(document.body);
+    });
 
     if (!timeline) {
       new IntersectionObserver(
@@ -621,7 +636,7 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
       rt = window.setTimeout(() => {
         // Phones fire resize whenever the toolbar shows or hides; the stage is
         // sized in svh, so only a real width change needs the words redone.
-        if (innerWidth === builtW) return;
+        if (!started || innerWidth === builtW) return;
         builtW = innerWidth;
         build();
         layout();

@@ -88,6 +88,7 @@ const { projects } = Astro.props;
       const last: string[] = [];
       const render = () => {
         ticking = false;
+        if (!natural.length) return;
         cards.forEach((card, i) => {
           const tf = scale(i, scrollY);
           if (tf !== last[i]) card.style.transform = last[i] = tf;
@@ -111,7 +112,7 @@ const { projects } = Astro.props;
       onLayout(() => {
         measure();
         req();
-      });
+      }, stack);
     });
   }
 </script>

@@ -105,16 +105,57 @@ export function whileNear(target: Element, anims: () => (Animation | null | unde
 }
 
 /**
- * Run `cb` once now and again (debounced) whenever the page's layout may have
- * moved: the page resized or its content changed height.
+ * Call `start` once the page has settled — fonts loaded and the hero's
+ * doodles landed — or as soon as `target` comes within a screen, whichever
+ * is first. Keeps set-up work off the main thread while the hero animates.
  */
-export function onLayout(cb: () => void) {
+export function whenSettledOrNear(target: Element, start: () => void) {
+  let done = false;
+  let near = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    io.disconnect();
+    removeEventListener('scroll', onScroll);
+    start();
+  };
+  // "Near" only counts once the page has been scrolled (or opened part-way
+  // down): while it is still loading, the page is shorter than it will be,
+  // so sections below the hero can look closer than they are.
+  const onScroll = () => near && go();
+  const io = new IntersectionObserver(
+    ([e]) => {
+      near = e.isIntersecting;
+      if (near && scrollY > 0) go();
+    },
+    { rootMargin: '100% 0px' },
+  );
+  io.observe(target);
+  addEventListener('scroll', onScroll, { passive: true });
+  (document.fonts?.ready ?? Promise.resolve()).then(() => setTimeout(go, 6000));
+}
+
+/**
+ * Run `cb` (see whenSettledOrNear for when it first runs, given a `target`)
+ * and again, debounced, whenever the page's layout may have moved: the page
+ * resized or its content changed height.
+ */
+export function onLayout(cb: () => void, target?: Element) {
+  if (target) {
+    whenSettledOrNear(target, () => onLayout(cb));
+    return;
+  }
   let t = 0;
   const run = () => {
     clearTimeout(t);
     t = window.setTimeout(cb, 150);
   };
-  new ResizeObserver(run).observe(document.body);
+  // ResizeObserver reports once straight away; cb() below already covers that.
+  let first = true;
+  new ResizeObserver(() => {
+    if (first) first = false;
+    else run();
+  }).observe(document.body);
   // Phones resize the window whenever the toolbar shows or hides, i.e. on
   // every change of scroll direction. Rebuilding then would hitch mid-swipe,
   // so only a real width change (rotation, desktop resize) counts.
@@ -124,6 +165,7 @@ export function onLayout(cb: () => void) {
     width = innerWidth;
     run();
   });
-  document.fonts?.ready.then(run);
+  // Fonts still loading change text sizes; once loaded, no need to rerun.
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
   cb();
 }
