@@ -324,6 +324,8 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
 </style>
 
 <script>
+  import { scrollDriven, bake, bakeStep, docTop, onLayout } from '../scripts/scrollDriven';
+
   const reduce = document.documentElement.classList.contains('reduce-motion');
 
   document.querySelectorAll<HTMLElement>('[data-reel]').forEach((section) => {
@@ -405,24 +407,23 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
 
     if (reduce) return;
 
-    // Grow the frame with scroll.
+    // Grow the frame with scroll. The scene is a pure function of scrollY,
+    // from layout numbers cached here.
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
-    let ticking = false;
-    let pinned = false;
-    const render = () => {
-      ticking = false;
-      const rect = section.getBoundingClientRect();
-      const W = innerWidth;
-      const H = innerHeight;
-      // Pinned once the stage reaches the top (the tunnel has just let go).
-      const isPinned = rect.top <= 0.5 && rect.bottom > H * 0.5;
-      if (isPinned !== pinned) {
-        pinned = isPinned;
-        section.classList.toggle('is-pinned', pinned);
-      }
-      const total = section.offsetHeight - H;
-      const p = Math.min(1, Math.max(0, -rect.top / total));
+    let top = 0;
+    let height = 1;
+    let W = innerWidth;
+    let H = innerHeight;
+    const measure = () => {
+      W = innerWidth;
+      H = innerHeight;
+      top = docTop(section);
+      height = section.offsetHeight;
+    };
+    const scene = (y: number) => {
+      const rectTop = top - y;
+      const p = Math.min(1, Math.max(0, -rectTop / Math.max(1, height - H)));
       // 0 → 0.16: grow out of the centre where the tunnel vanished.
       const e = ease(Math.min(1, p / 0.16));
       // 0.16 → 0.85: the frame opens to full screen, the words part.
@@ -433,15 +434,60 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
       const sc = 0.02 + 0.98 * e;
       const w = lerp(w0 * W, W, t) * sc;
       const h = lerp(h0 * H, H, t) * sc;
-      frame.style.setProperty('--ix', `${((W - w) / 2).toFixed(1)}px`);
-      frame.style.setProperty('--iy', `${((H - h) / 2).toFixed(1)}px`);
-      frame.style.setProperty('--fr', `${lerp(16, 0, t).toFixed(1)}px`);
       const push = t * (small ? H * 0.4 : W * 0.32);
-      wl.style.transform = small ? `translate3d(0, ${(-push).toFixed(1)}px, 0)` : `translate3d(${(-push).toFixed(1)}px, 0, 0)`;
-      wr.style.transform = small ? `translate3d(0, ${push.toFixed(1)}px, 0)` : `translate3d(${push.toFixed(1)}px, 0, 0)`;
-      wl.style.opacity = wr.style.opacity = String(1 - t);
-      words.style.opacity = hint.style.opacity = e.toFixed(3);
-      words.style.transform = e < 1 ? `scale(${(0.4 + 0.6 * e).toFixed(4)})` : '';
+      return {
+        clip: `inset(${((H - h) / 2).toFixed(1)}px ${((W - w) / 2).toFixed(1)}px round ${lerp(16, 0, t).toFixed(1)}px)`,
+        wl: small ? `translate3d(0, ${(-push).toFixed(1)}px, 0)` : `translate3d(${(-push).toFixed(1)}px, 0, 0)`,
+        wr: small ? `translate3d(0, ${push.toFixed(1)}px, 0)` : `translate3d(${push.toFixed(1)}px, 0, 0)`,
+        wo: (1 - t).toFixed(3),
+        e: e.toFixed(3),
+        ws: `scale(${(0.4 + 0.6 * e).toFixed(4)})`,
+        // Pinned once the stage reaches the top (the tunnel has just let go).
+        pinned: rectTop <= 0.5 && rectTop + height > H * 0.5,
+      };
+    };
+
+    if (scrollDriven) {
+      // The browser plays the scene straight off the scroll position.
+      const sticky = section.querySelector<HTMLElement>('.reel__sticky')!;
+      const ink = getComputedStyle(section).getPropertyValue('--ink').trim() || '#0e0f11';
+      let a: Record<string, Animation | null> = {};
+      onLayout(() => {
+        measure();
+        const y0 = top;
+        const y1 = top + Math.max(1, height - H);
+        a = {
+          frame: bake(frame, a.frame ?? null, y0, y1, (y) => ({ clipPath: scene(y).clip })),
+          wl: bake(wl, a.wl ?? null, y0, y1, (y) => ({ transform: scene(y).wl, opacity: scene(y).wo })),
+          wr: bake(wr, a.wr ?? null, y0, y1, (y) => ({ transform: scene(y).wr, opacity: scene(y).wo })),
+          words: bake(words, a.words ?? null, y0, y1, (y) => ({ opacity: scene(y).e, transform: scene(y).ws })),
+          hint: bake(hint, a.hint ?? null, y0, y1, (y) => ({ opacity: scene(y).e })),
+          // The stage only shows while pinned; until then it is see-through.
+          bg: bakeStep(sticky, a.bg ?? null, top - 0.5, top + height - H * 0.5, { backgroundColor: 'transparent' }, { backgroundColor: ink }),
+          v1: bakeStep(words, a.v1 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
+          v2: bakeStep(frame, a.v2 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
+          v3: bakeStep(hint, a.v3 ?? null, top - 0.5, top + height - H * 0.5, { visibility: 'hidden' }, { visibility: 'visible' }),
+        };
+      });
+      return;
+    }
+
+    // Fallback: drive the same scene from scroll events while on screen.
+    let ticking = false;
+    let pinned = false;
+    const render = () => {
+      ticking = false;
+      const s = scene(scrollY);
+      if (s.pinned !== pinned) {
+        pinned = s.pinned;
+        section.classList.toggle('is-pinned', pinned);
+      }
+      frame.style.clipPath = s.clip;
+      wl.style.transform = s.wl;
+      wr.style.transform = s.wr;
+      wl.style.opacity = wr.style.opacity = s.wo;
+      words.style.opacity = hint.style.opacity = s.e;
+      words.style.transform = s.ws;
     };
     const req = () => {
       if (!ticking) {
@@ -449,8 +495,6 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
         requestAnimationFrame(render);
       }
     };
-    // Only measure while on screen, so it never forces a layout in the
-    // middle of the word tunnel's animation frame.
     let visible = false;
     new IntersectionObserver(
       ([e]) => {
@@ -460,7 +504,9 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
       { rootMargin: '100px' },
     ).observe(section);
     addEventListener('scroll', () => visible && req(), { passive: true });
-    addEventListener('resize', req);
-    render();
+    onLayout(() => {
+      measure();
+      req();
+    });
   });
 </script>

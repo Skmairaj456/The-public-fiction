@@ -48,24 +48,58 @@ const { projects } = Astro.props;
 </style>
 
 <script>
+  import { scrollDriven, bake, docTop, onLayout } from '../scripts/scrollDriven';
+
   if (!document.documentElement.classList.contains('reduce-motion')) {
     document.querySelectorAll<HTMLElement>('[data-stack]').forEach((stack) => {
       const items = Array.from(stack.querySelectorAll<HTMLElement>('[data-stack-item]'));
+      const cards = items.map((item) => item.firstElementChild as HTMLElement);
+
+      // Layout, cached. Each card sticks at its own top; where it would sit
+      // unstuck is worked out from the stack's position, heights and gap, so
+      // the scene is a pure function of scrollY.
+      let natural: number[] = [];
+      let stuck: number[] = [];
+      let heights: number[] = [];
+      const measure = () => {
+        const gap = parseFloat(getComputedStyle(stack).rowGap) || 0;
+        let y = docTop(stack);
+        natural = [];
+        heights = items.map((it) => it.offsetHeight);
+        stuck = items.map((it) => parseFloat(getComputedStyle(it).top) || 0);
+        items.forEach((_, i) => {
+          natural.push(y);
+          y += heights[i] + gap;
+        });
+      };
+      // How far card i+1 has slid over card i (0 → 1) at a scroll position.
+      const covered = (i: number, y: number) => {
+        if (i >= items.length - 1) return 0;
+        const aTop = Math.max(stuck[i], natural[i] - y);
+        const bTop = Math.max(stuck[i + 1], natural[i + 1] - y);
+        return Math.min(1, Math.max(0, (aTop + heights[i] - bTop) / heights[i]));
+      };
+      const scale = (i: number, y: number) => `scale(${(1 - covered(i, y) * 0.07).toFixed(4)})`;
+
+      if (scrollDriven) {
+        // The browser plays the cards' shrink straight off the scroll position.
+        let anims: (Animation | null)[] = cards.map(() => null);
+        onLayout(() => {
+          measure();
+          anims = cards.map((card, i) =>
+            i < items.length - 1 ? bake(card, anims[i], natural[i] - innerHeight, natural[i + 1], (y) => ({ transform: scale(i, y) }), 60) : null,
+          );
+        });
+        return;
+      }
+
+      // Fallback: the same, from scroll events while on screen.
       let ticking = false;
       const last: string[] = [];
       const render = () => {
         ticking = false;
-        // Read every position first, then write: interleaving the two forces
-        // a fresh layout for every card.
-        const rects = items.map((item) => item.getBoundingClientRect());
-        items.forEach((item, i) => {
-          const card = item.firstElementChild as HTMLElement;
-          // How far the next card has slid over this one (0 → 1).
-          const a = rects[i];
-          const covered = items[i + 1] ? Math.min(1, Math.max(0, (a.bottom - rects[i + 1].top) / a.height)) : 0;
-          // Set the transform itself, and only when it changes: updating a
-          // custom property instead would re-style the whole card every frame.
-          const tf = `scale(${(1 - covered * 0.07).toFixed(4)})`;
+        cards.forEach((card, i) => {
+          const tf = scale(i, scrollY);
           if (tf !== last[i]) card.style.transform = last[i] = tf;
         });
       };
@@ -84,7 +118,10 @@ const { projects } = Astro.props;
         { rootMargin: '100px' },
       ).observe(stack);
       addEventListener('scroll', () => visible && req(), { passive: true });
-      render();
+      onLayout(() => {
+        measure();
+        req();
+      });
     });
   }
 </script>

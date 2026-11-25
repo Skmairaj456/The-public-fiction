@@ -1,0 +1,93 @@
+/**
+ * Scroll-driven animations on the page's scroll timeline.
+ *
+ * A scroll effect written as "styles for a given scrollY" is sampled once into
+ * keyframes; the browser then plays them straight off the scroll position, in
+ * step with the finger at the screen's full refresh rate, with no script
+ * running while the page scrolls. On iOS this is the difference between
+ * smooth and choppy: native scrolling runs separately from JavaScript, so
+ * effects driven from scroll events always trail behind.
+ *
+ * Supported in Safari 26+ and Chrome 115+. Where it isn't, `scrollDriven` is
+ * false and components keep their scroll-event fallback.
+ */
+
+type Props = Record<string, string>;
+
+// (Not in TypeScript's DOM types yet.)
+const TL = (window as unknown as { ScrollTimeline?: new (o: { source: Element; axis: string }) => AnimationTimeline })
+  .ScrollTimeline;
+
+export const scrollDriven = Boolean(TL);
+
+let timeline: AnimationTimeline | null = null;
+const pageTimeline = () => (TL ? (timeline ??= new TL({ source: document.documentElement, axis: 'block' })) : null);
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+
+/** An element's top in page coordinates. */
+export const docTop = (el: Element) => el.getBoundingClientRect().top + scrollY;
+
+const OPTS = { fill: 'both', duration: 'auto', easing: 'linear' } as const;
+
+const apply = (el: Element, prev: Animation | null, kf: Keyframe[]) => {
+  if (prev) {
+    (prev.effect as KeyframeEffect).setKeyframes(kf);
+    return prev;
+  }
+  return el.animate(kf, { ...OPTS, timeline: pageTimeline() } as unknown as KeyframeAnimationOptions);
+};
+
+/**
+ * Sample `styles(scrollY)` between scrollY = y0 and y1 into a scroll-driven
+ * animation (holding the end values outside that range). Pass the previous
+ * animation back in to update it after a layout change.
+ */
+export function bake(el: Element, prev: Animation | null, y0: number, y1: number, styles: (y: number) => Props, samples = 120) {
+  const max = maxScroll();
+  if (!TL || max <= 0) return prev;
+  const kf: Keyframe[] = [{ ...styles(y0), offset: 0 }];
+  let last = 0;
+  for (let s = 0; s <= samples; s++) {
+    const y = y0 + ((y1 - y0) * s) / samples;
+    const o = clamp01(y / max);
+    if (o < last) continue;
+    last = o;
+    kf.push({ ...styles(y), offset: o });
+  }
+  kf.push({ ...styles(y1), offset: 1 });
+  return apply(el, prev, kf);
+}
+
+/** `inside` while y0 ≤ scrollY < y1, `outside` otherwise, switching instantly. */
+export function bakeStep(el: Element, prev: Animation | null, y0: number, y1: number, outside: Props, inside: Props) {
+  const max = maxScroll();
+  if (!TL || max <= 0) return prev;
+  const o0 = clamp01(y0 / max);
+  const o1 = Math.max(o0, clamp01(y1 / max));
+  return apply(el, prev, [
+    { ...outside, offset: 0 },
+    { ...outside, offset: o0 },
+    { ...inside, offset: o0 },
+    { ...inside, offset: o1 },
+    { ...outside, offset: o1 },
+    { ...outside, offset: 1 },
+  ]);
+}
+
+/**
+ * Run `cb` once now and again (debounced) whenever the page's layout may have
+ * moved: the page resized or its content changed height.
+ */
+export function onLayout(cb: () => void) {
+  let t = 0;
+  const run = () => {
+    clearTimeout(t);
+    t = window.setTimeout(cb, 150);
+  };
+  new ResizeObserver(run).observe(document.body);
+  addEventListener('resize', run);
+  document.fonts?.ready.then(run);
+  cb();
+}

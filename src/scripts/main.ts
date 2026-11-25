@@ -9,9 +9,12 @@ const INTRO_MS = 1500;
    Smooth scroll (skipped for reduced motion and touch-first devices keep native feel)
    --------------------------------------------------------------------------- */
 let lenis: Lenis | null = null;
-// Runs on phones too: the scroll-driven sections (the word tunnel especially)
-// felt choppier on iPhone with Lenis switched off for touch devices.
-if (!reduceMotion) {
+// Desktop only. Lenis doesn't smooth touch scrolling, yet it registers
+// non-passive touchstart/touchmove listeners on the window, which make iOS
+// wait for the main thread before every scroll step: any busy moment then
+// stutters the whole page. Phones keep native scrolling.
+const touchFirst = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+if (!reduceMotion && !touchFirst) {
   lenis = new Lenis({ lerp: 0.11, anchors: { offset: -80 }, autoRaf: true });
 }
 
