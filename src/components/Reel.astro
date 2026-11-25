@@ -129,6 +129,9 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
   .reel__slide.is-on :global(img) {
     animation: kenburns 7s linear both;
   }
+  .reel.is-off .reel__slide :global(img) {
+    animation-play-state: paused;
+  }
   @keyframes kenburns {
     from {
       transform: scale(1.12);
@@ -427,9 +430,12 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
       slides[i].classList.add('is-on');
       count.textContent = String(i + 1).padStart(2, '0');
     };
+    // Runs only while the reel is on screen: off screen, each slide change
+    // would still cross-fade and zoom a full-screen photo every few seconds.
+    let onScreen = false;
     const start = () => {
       clearInterval(timer);
-      timer = window.setInterval(() => show(i + 1), 2800);
+      if (onScreen) timer = window.setInterval(() => show(i + 1), 2800);
     };
     const set = (on: boolean) => {
       playing = on;
@@ -440,6 +446,11 @@ const hasReel = showreel.showReel && Boolean(showreel.src);
     };
     toggle.addEventListener('click', () => set(!playing));
     set(playing);
+    new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+      section.classList.toggle('is-off', !onScreen);
+      if (playing) start();
+    }).observe(section);
 
     // Showreel modal: a native <dialog> opened as modal keeps focus inside it
     // and closes on Esc; the video pauses and focus returns to the button.

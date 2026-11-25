@@ -494,8 +494,8 @@ const schema = [website(), faqPage(faqs)];
       // Heavy enough that the doodles drop and land with weight.
       gravity: { x: 0, y: 1.9 },
       enableSleeping: true,
-      positionIterations: 10,
-      velocityIterations: 8,
+      // Matter's default solver passes, as in the playground further down:
+      // extra passes multiplied the cost per frame and overloaded phones.
     });
     const world = engine.world;
     type Thing = { el: HTMLElement; body: Matter.Body; w: number; h: number };
@@ -550,8 +550,11 @@ const schema = [website(), faqPage(faqs)];
     let raf = 0;
     let last = 0;
     let idle = 0;
-    let acc = 0;
-    const STEP = 1000 / 120;
+    // Settled doodles can jitter forever without Matter calling them asleep,
+    // which would keep the loop running: stop a few seconds after the last
+    // drop or throw (grabbing one wakes it again).
+    let settleBy = 0;
+    const settleSoon = () => (settleBy = performance.now() + 3500);
     const MAX_SPEED = 45;
     const follow = () => {
       if (!grab) return;
@@ -595,17 +598,16 @@ const schema = [website(), faqPage(faqs)];
         raf = 0;
         return;
       }
-      // Real time, catching up at most 50ms after a slow frame: a tighter cap
-      // turns a busy moment into slow motion.
-      acc += Math.min(50, last ? now - last : STEP);
+      // One physics update per screen frame, sized to the time that passed
+      // (capped so a stall can't launch anything). Several small fixed steps
+      // per frame cost several times as much and, once a phone fell behind,
+      // each slow frame queued more steps for the next one.
+      const dt = Math.min(1000 / 30, last ? now - last : 1000 / 60);
       last = now;
-      while (acc >= STEP) {
-        follow();
-        Engine.update(engine, STEP);
-        acc -= STEP;
-      }
+      follow();
+      Engine.update(engine, dt);
       render();
-      const moving = grab || dropping || things.some((t) => !t.body.isSleeping);
+      const moving = grab || dropping || (now < settleBy && things.some((t) => !t.body.isSleeping));
       idle = moving ? 0 : idle + 1;
       raf = idle > 30 ? 0 : requestAnimationFrame(loop);
     };
@@ -621,7 +623,6 @@ const schema = [website(), faqPage(faqs)];
       idle = 0;
       if (!raf && onScreen && (!scrolling || !mostlyGone || grab)) {
         last = 0;
-        acc = 0;
         raf = requestAnimationFrame(loop);
       }
     };
@@ -655,7 +656,10 @@ const schema = [website(), faqPage(faqs)];
           Composite.add(world, body);
           render();
           el.classList.add('is-dropped');
-          if (i === shown.length - 1) dropping = false;
+          if (i === shown.length - 1) {
+            dropping = false;
+            settleSoon();
+          }
           run();
         }, i * 120);
       });
@@ -720,6 +724,7 @@ const schema = [website(), faqPage(faqs)];
         Body.setAngularVelocity(thing.body, (Math.random() - 0.5) * 0.4);
       }
       grab = null;
+      settleSoon();
       run();
     };
     box.addEventListener('pointerup', release);
