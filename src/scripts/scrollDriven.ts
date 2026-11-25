@@ -93,13 +93,16 @@ export function whileNear(target: Element, anims: () => (Animation | null | unde
       } else if (a.playState !== 'idle') a.cancel();
     }
   };
-  // A screen's height of margin either side: live well before it shows.
+  // Half a screen of margin either side: live just before it shows. Safari
+  // keeps recomputing running scroll-driven animations every frame even
+  // while nothing scrolls, so a wider margin taxes the sections around it
+  // (a whole screen kept the tunnel's running while sitting on the hero).
   new IntersectionObserver(
     ([e]) => {
       near = e.isIntersecting;
       apply();
     },
-    { rootMargin: '100% 0px' },
+    { rootMargin: '50% 0px' },
   ).observe(target);
   return apply;
 }

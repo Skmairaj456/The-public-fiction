@@ -340,7 +340,11 @@ const { words, caption = 'Seven disciplines. One team.' } = Astro.props;
           near = e.isIntersecting;
           gate();
         },
-        { rootMargin: '100% 0px' },
+        // Only as the tunnel arrives: the words sit mid-stage, so even a fast
+        // swipe can't show them before this switches on. A wider margin kept
+        // all ~50 running while sitting on the hero, which Safari pays for
+        // every frame.
+        { rootMargin: '15% 0px' },
       ).observe(section);
 
     const bake = () => {
