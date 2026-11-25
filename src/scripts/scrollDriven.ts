@@ -132,7 +132,7 @@ export function whenSettledOrNear(target: Element, start: () => void) {
   );
   io.observe(target);
   addEventListener('scroll', onScroll, { passive: true });
-  (document.fonts?.ready ?? Promise.resolve()).then(() => setTimeout(go, 6000));
+  (document.fonts?.ready ?? Promise.resolve()).then(() => setTimeout(go, 7500));
 }
 
 /**

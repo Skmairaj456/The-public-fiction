@@ -490,13 +490,10 @@ const schema = [website(), faqPage(faqs)];
     const items = Array.from(box.children) as HTMLElement[];
     let live = false;
 
-    const engine = Engine.create({
-      // Heavy enough that the doodles drop and land with weight.
-      gravity: { x: 0, y: 1.9 },
-      enableSleeping: true,
-      // Matter's default solver passes, as in the playground further down:
-      // extra passes multiplied the cost per frame and overloaded phones.
-    });
+    // Physics set up exactly like the playground further down the page
+    // (src/components/Playground.astro), which is smooth on phones: same
+    // gravity, default solver passes, no sleeping, one update per frame.
+    const engine = Engine.create({ gravity: { x: 0, y: 1.1 } });
     const world = engine.world;
     type Thing = { el: HTMLElement; body: Matter.Body; w: number; h: number };
     let things: Thing[] = [];
@@ -598,23 +595,16 @@ const schema = [website(), faqPage(faqs)];
         raf = 0;
         return;
       }
-      // Capped at 60 updates a second: on 120 Hz screens (ProMotion iPhones)
-      // that halves the physics and redraw work, and falling doodles look
-      // just as smooth at 60. Skip any frame that comes sooner.
-      if (last && now - last < 1000 / 60 - 2) {
-        raf = requestAnimationFrame(loop);
-        return;
-      }
-      // One physics update per (capped) frame, sized to the time that passed
-      // (capped so a stall can't launch anything). Several small fixed steps
-      // per frame cost several times as much and, once a phone fell behind,
-      // each slow frame queued more steps for the next one.
+      // One physics update per frame, sized to the time that passed (capped
+      // so a stall can't launch anything) — the playground's loop.
       const dt = Math.min(1000 / 30, last ? now - last : 1000 / 60);
       last = now;
       follow();
       Engine.update(engine, dt);
       render();
-      const moving = grab || dropping || (now < settleBy && things.some((t) => !t.body.isSleeping));
+      // Unlike the playground, stop once the doodles have landed (no one is
+      // looking at a still pile; this saves the battery).
+      const moving = grab || dropping || now < settleBy;
       idle = moving ? 0 : idle + 1;
       raf = idle > 30 ? 0 : requestAnimationFrame(loop);
     };
@@ -650,10 +640,11 @@ const schema = [website(), faqPage(faqs)];
           const h = el.offsetHeight;
           const rad = Math.max(w, h) * 0.42;
           const x = left + rad + Math.random() * Math.max(1, right - left - rad * 2);
+          // Same body settings as the playground's doodles.
           const body = Bodies.circle(x, top - h - Math.random() * 160, rad, {
-            restitution: 0.35,
-            friction: 0.35,
-            frictionAir: 0.006,
+            restitution: 0.32,
+            friction: 0.4,
+            frictionAir: 0.012,
             density: 0.0015,
           });
           Body.setAngle(body, (Math.random() - 0.5) * 1.2);
@@ -672,16 +663,20 @@ const schema = [website(), faqPage(faqs)];
       });
     };
 
-    // Start once the brand intro has lifted and the hero is on screen.
-    const introDelay = document.documentElement.classList.contains('has-intro') ? 1500 : 250;
-    window.setTimeout(() => {
+    // Start like the playground does: on an idle page. That means after the
+    // brand intro has lifted and the headline has slid in (both done by
+    // ~2.6s), and once the page and fonts have loaded.
+    const introDone = document.documentElement.classList.contains('has-intro') ? 2600 : 250;
+    const loaded = new Promise<void>((res) => (document.readyState === 'complete' ? res() : addEventListener('load', () => res(), { once: true })));
+    const settled = Promise.all([loaded, document.fonts?.ready ?? Promise.resolve(), new Promise((r) => setTimeout(r, introDone))]);
+    settled.then(() => {
       const io = new IntersectionObserver(([e]) => {
         if (!e.isIntersecting) return;
         io.disconnect();
         drop();
       });
       io.observe(hero);
-    }, introDelay);
+    });
 
     const local = (e: PointerEvent) => {
       const r = box.getBoundingClientRect();
